@@ -31,7 +31,7 @@ def load_config():
 
     config["webhook"] = str(parser["GENERAL"]["webhook"]).strip()
     config["cookie"] = ".ROBLOSECURITY=_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser["GENERAL"]["cookie"]).split("_")[-1]
-    config["logging_level"] = int(parser["DEBUG"])
+    config["logging_level"] = int(parser["DEBUG"]["logging_level"])
     return config
 
 
