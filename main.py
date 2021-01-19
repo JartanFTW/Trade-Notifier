@@ -9,8 +9,13 @@ import traceback
 import PIL
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+import sys
 
 clear = lambda: os.system("cls")
+
+def print_console(text, logging_level=20):
+    print(time.strftime('%H:%M:%S | ', time.localtime()) + str(text))
+    logging.log(logging_level, str(text))
 
 def setup_logging(level=40):
 
@@ -51,8 +56,12 @@ class Worker():
     
     async def async_init(self):
         self.client = httpx.AsyncClient()
+
+        print_console("Performing initialization csrf update.")
         await self.update_csrf()
+
         self.old_trades = []
+        print_console("Performing initialization trades grab.")
         trades_json = await self.get_completed_trades()
         for trade in trades_json["data"]:
             self.old_trades.append(trade["id"])
@@ -71,21 +80,50 @@ class Worker():
 
             self.roli_values = await self.grab_rolimons_values()
 
+            print_console("Updated rolimons values.", 20)
+
             await asyncio.sleep(self.rolimons_update_interval)
     
     async def update_csrf(self):
 
-        request = await self.client.post("https://auth.roblox.com/v1/logout", headers={"Cookie": self.cookie})
+        while True:
 
-        try:
+            request = await self.client.post("https://auth.roblox.com/v1/logout", headers={"Cookie": self.cookie})
 
-            self.csrf = request.headers["x-csrf-token"]
+            try:
 
-        except IndexError:
+                self.csrf = request.headers["x-csrf-token"]
 
-            status = await request.status_code
+                print_console("Updated csrf token.", 20)
 
-            return status
+                return
+
+            except KeyError:
+
+                if request.status_code == 429:
+                    
+                    logging.info("Couldn't update csrf token: 429")
+
+                    continue
+                
+                if request.status_code == 401:
+
+                    logging.critical("Couldn't update csrf token: 401")
+
+                    print_console("Cookie is invalid.", 50)
+
+                    await self.client.aclose()
+
+                    sys.exit()
+                
+                else:
+
+                    print_console(f"An unknown critical error occurred while updating csrf token. Unknown response code: {request.status_code}", 50)
+
+                    await self.client.aclose()
+
+                    sys.exit()
+
 
     async def get_completed_trades(self):
 
@@ -191,21 +229,26 @@ class Worker():
     
 
     async def check_confirmed_trades_loop(self):
+
         if not isinstance(self.csrf, str):
             await self.update_csrf()
 
         while True:
+            print_console("Checking confirmed trades.", 20)
 
             trades_json = await self.get_completed_trades()
             for trade in trades_json["data"]:
                 if trade["id"] not in self.old_trades:
 
+                    print_console("Found new confirmed trade.", 20)
+
                     trade_data = await self.get_trade_data(trade["id"])
 
                     trade_picture = await self.generate_image(trade_data)
 
-
                     await self.send_webhook(trade_picture)
+                    
+                    print_console("Sent confirmed trade webhook.", 20)
 
                     self.old_trades.append(trade["id"])
 
@@ -243,4 +286,4 @@ if __name__ == "__main__":
         logging.critical(f"An unknown critical error occurred: {traceback.print_exc()}")
         print(f"An unknown critical error occurred: {traceback.print_exc()}")
     finally:
-        input("Operations have complete.")
+        input("Operations have complete. Press Enter to exit.")
