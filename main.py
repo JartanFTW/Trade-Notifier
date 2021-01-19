@@ -11,6 +11,8 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import sys
 
+print("Horizon Trade Notifier - Jartan#7450 - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+
 clear = lambda: os.system("cls")
 
 def print_console(text, logging_level=20):
