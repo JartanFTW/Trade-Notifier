@@ -58,12 +58,12 @@ class Worker():
     
     async def async_init(self):
         self.client = httpx.AsyncClient()
-
-        print_console("Performing initialization csrf update.")
+        
+        print_console("Performing initialization csrf update.", 20)
         await self.update_csrf()
 
+        print_console("Performing initialization trades grab.", 20)
         self.old_trades = []
-        print_console("Performing initialization trades grab.")
         trades_json = await self.get_completed_trades()
         for trade in trades_json["data"]:
             self.old_trades.append(trade["id"])
@@ -125,7 +125,6 @@ class Worker():
                     await self.client.aclose()
 
                     sys.exit()
-
 
     async def get_completed_trades(self):
 
@@ -231,11 +230,12 @@ class Worker():
     
 
     async def check_confirmed_trades_loop(self):
-
+                                        
         if not isinstance(self.csrf, str):
             await self.update_csrf()
 
         while True:
+                                        
             print_console("Checking confirmed trades.", 20)
 
             trades_json = await self.get_completed_trades()
@@ -249,7 +249,7 @@ class Worker():
                     trade_picture = await self.generate_image(trade_data)
 
                     await self.send_webhook(trade_picture)
-                    
+                                        
                     print_console("Sent confirmed trade webhook.", 20)
 
                     self.old_trades.append(trade["id"])
