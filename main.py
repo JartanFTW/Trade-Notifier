@@ -52,7 +52,10 @@ class Worker():
     async def async_init(self):
         self.client = httpx.AsyncClient()
         await self.update_csrf()
-        self.old_trades = []  #TODO ADD INITIAL GRABBING OF FIRST 10 TRADES HERE
+        self.old_trades = []
+        trades_json = await self.get_completed_trades()
+        for trade in trades_json["data"]:
+            self.old_trades.append(trade["id"])
     
 
     async def grab_rolimons_values(self):
