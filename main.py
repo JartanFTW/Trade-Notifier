@@ -264,7 +264,7 @@ class Worker():
                     self.old_trades.append(trade["id"])
 
                     if len(self.old_trades) > 10:
-                        del self.old_trades[0:-11]
+                        del self.old_trades[0:-10]
                     
                     logging.debug(f"Updated old trades: {self.old_trades}")
             
