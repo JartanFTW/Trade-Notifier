@@ -59,6 +59,9 @@ class Worker():
     async def async_init(self):
         self.client = httpx.AsyncClient()
         
+        print_console("Performing initialization ID grab.", 20)
+        await self.update_id()
+        
         print_console("Performing initialization csrf update.", 20)
         await self.update_csrf()
 
@@ -73,6 +76,23 @@ class Worker():
         logging.debug(f"Initialization trade request json: {trades_json}")
         logging.debug(f"Initialization old_trades: {self.old_trades}")
     
+
+    async def update_id(self):
+
+        request = await self.client.get("https://www.roblox.com/game/GetCurrentUser.ashx", headers={"Cookie": self.cookie})
+
+        if request.status_code == 403 or request.text == "null":
+            
+            logging.critical(f"Couldn't update user id: {request.status_code}")
+
+            print_console("Cookie is invalid.", 50)
+
+            await self.client.aclose()
+
+            sys.exit()
+        
+        self.id = int(request.text)
+
 
     async def grab_rolimons_values(self):
 
@@ -182,23 +202,27 @@ class Worker():
             if item["state"] == "Completed":
                 image_objects[str(item["targetId"])] = await self.get_asset_image_object(item["imageUrl"])
         
-        for i in range(len(trade["offers"][0]["userAssets"])):
+        for side in trade["offers"]:
+            if side["user"]["id"] == self.id:
+                for i in range(len(side["userAssets"])):
 
-            item = trade["offers"][0]["userAssets"][i]
+                    item = side["userAssets"][i]
            
-            try:
-                trade_image.paste(image_objects[str(item["assetId"])], mask = image_objects[str(item["assetId"])], box=(75 + 120*i + 30*i, 85))
-            except KeyError:
-                continue
+                    try:
+                        trade_image.paste(image_objects[str(item["assetId"])], mask = image_objects[str(item["assetId"])], box=(75 + 120*i + 30*i, 85))
+                    except KeyError:
+                        continue
+            
+            else:
         
-        for i in range(len(trade["offers"][1]["userAssets"])):
+                for i in range(len(side["userAssets"])):
 
-            item = trade["offers"][1]["userAssets"][i]
+                    item = side["userAssets"][i]
 
-            try:
-                trade_image.paste(image_objects[str(item["assetId"])], mask = image_objects[str(item["assetId"])], box=(75 + 120*i + 30*i, 345))
-            except KeyError:
-                continue
+                    try:
+                        trade_image.paste(image_objects[str(item["assetId"])], mask = image_objects[str(item["assetId"])], box=(75 + 120*i + 30*i, 345))
+                    except KeyError:
+                        continue
         
         draw = ImageDraw.Draw(trade_image)
         font = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Rubik-Medium.ttf"), 25)
