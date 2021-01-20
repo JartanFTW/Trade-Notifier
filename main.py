@@ -67,7 +67,7 @@ class Worker():
         print_console("Performing initialization trades grab.", 20)
         self.old_trades = []
         trades_json = await self.get_completed_trades()
-        for trade in trades_json["data"]:
+        for trade in trades_json["data"].reverse():
             self.old_trades.append(trade["id"])
         
         logging.debug(f"Initialization trade request json: {trades_json}")
@@ -248,7 +248,7 @@ class Worker():
             print_console("Checking confirmed trades.", 20)
 
             trades_json = await self.get_completed_trades()
-            for trade in trades_json["data"]:
+            for trade in trades_json["data"].reverse():
                 if trade["id"] not in self.old_trades:
 
                     print_console(f"Found new confirmed trade: {trade['id']}", 20)
