@@ -62,11 +62,16 @@ class Worker():
         print_console("Performing initialization csrf update.", 20)
         await self.update_csrf()
 
+        logging.debug(f"Initialization csrf token: {self.csrf}")
+
         print_console("Performing initialization trades grab.", 20)
         self.old_trades = []
         trades_json = await self.get_completed_trades()
         for trade in trades_json["data"]:
             self.old_trades.append(trade["id"])
+        
+        logging.debug(f"Initialization trade request json: {trades_json}")
+        logging.debug(f"Initialization old_trades: {self.old_trades}")
     
 
     async def grab_rolimons_values(self):
@@ -96,7 +101,7 @@ class Worker():
 
                 self.csrf = request.headers["x-csrf-token"]
 
-                print_console("Updated csrf token.", 20)
+                print_console("Updated csrf token: {self.csrf}", 20)
 
                 return
 
@@ -131,6 +136,8 @@ class Worker():
         request = await self.client.get("https://trades.roblox.com/v1/trades/Completed?limit=10&sortOrder=Asc", headers={"Cookie": self.cookie, "X-CSRF-TOKEN": self.csrf})
 
         request_json = request.json()
+
+        logging.debug(f"Completed trades json: {request_json}")
 
         return request_json
     
@@ -242,7 +249,7 @@ class Worker():
             for trade in trades_json["data"]:
                 if trade["id"] not in self.old_trades:
 
-                    print_console("Found new confirmed trade.", 20)
+                    print_console(f"Found new confirmed trade: {trade["id"]}", 20)
 
                     trade_data = await self.get_trade_data(trade["id"])
 
@@ -256,6 +263,8 @@ class Worker():
 
                     if len(self.old_trades) > 10:
                         del self.old_trades[0:-11]
+                    
+                    logging.debug(f"Updated old trades: {self.old_trades}")
             
             await asyncio.sleep(self.completed_trade_update_interval)
     
@@ -276,7 +285,9 @@ async def main():
     setup_logging(config["logging_level"])
 
     worker = Worker(config["webhook"], config["cookie"], config["rolimons_update_interval"], config["completed_trade_update_interval"])
+
     await worker.async_init()
+    
     await worker.run_workers()
 
 
