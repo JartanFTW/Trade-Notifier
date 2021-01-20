@@ -208,14 +208,17 @@ class Worker():
 
         for item in trade["offers"][0]["userAssets"]:
             rap_offered += self.roli_values[str(item["assetId"])][2]
-            value_offered += self.roli_values[str(item["assetId"])][3] # TODO MAKE NOT TAKE INTO ACCOUNT NEGATIVE (undefined) VALUES (-1)
+            if self.roli_values[str(item["assetId"])][3] > 0:
+                value_offered += self.roli_values[str(item["assetId"])][3]
+
     
         rap_received = 0
         value_received = 0
 
         for item in trade["offers"][1]["userAssets"]:
             rap_received += self.roli_values[str(item["assetId"])][2]
-            value_received += self.roli_values[str(item["assetId"])][3]
+            if self.roli_values[str(item["assetId"])][3] > 0:
+                value_received += self.roli_values[str(item["assetId"])][3]
 
         draw.text((650, 85), f"Rap offered: {rap_offered}", font=font, fill = (0, 128, 0))
         draw.text((650, 345), f"Rap offered: {rap_received}", font=font, fill = (0, 128, 0))
