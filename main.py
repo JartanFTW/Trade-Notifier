@@ -101,7 +101,7 @@ class Worker():
 
                 self.csrf = request.headers["x-csrf-token"]
 
-                print_console("Updated csrf token: {self.csrf}", 20)
+                print_console(f"Updated csrf token: {self.csrf}", 20)
 
                 return
 
@@ -145,6 +145,8 @@ class Worker():
         request = await self.client.get(f"https://trades.roblox.com/v1/trades/{trade_id}", headers={"Cookie": self.cookie, "X-CSRF-TOKEN": self.csrf})
 
         request_json = request.json()
+
+        logging.debug(f"Trade details json: {request_json}")
 
         return request_json
 
@@ -249,7 +251,7 @@ class Worker():
             for trade in trades_json["data"]:
                 if trade["id"] not in self.old_trades:
 
-                    print_console(f"Found new confirmed trade: {trade["id"]}", 20)
+                    print_console(f"Found new confirmed trade: {trade['id']}", 20)
 
                     trade_data = await self.get_trade_data(trade["id"])
 
