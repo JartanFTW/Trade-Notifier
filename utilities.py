@@ -207,8 +207,9 @@ def load_config(path: str):
     config = {}
 
     config["webhook"] = str(parser["GENERAL"]["webhook"]).strip()
-    config["cookie"] = ".ROBLOSECURITY=_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser["GENERAL"]["cookie"]).split("_")[-1] + ";"
+    config["cookie"] = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser["GENERAL"]["cookie"]).split("_")[-1]
     config["rolimons_update_interval"] = int(parser["GENERAL"]["rolimons_update_interval"])
     config["completed_trade_update_interval"] = int(parser["GENERAL"]["completed_trade_update_interval"])
+    config["theme_name"] = str(parser["THEME"]["theme_name"])
     config["logging_level"] = int(parser["DEBUG"]["logging_level"])
     return config
