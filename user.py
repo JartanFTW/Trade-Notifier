@@ -168,7 +168,7 @@ class User():
 
 
 
-    async def get_trade_data(self, trade_id):
+    async def get_trade_data(self, trade_id: [str, int]):
 
         attempt = 0
 
