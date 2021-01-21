@@ -1,0 +1,61 @@
+{
+
+    "item_image_size": "110x110",
+
+    "give_items": {
+        "item_1_center_position": [75, 85],
+        "item_2_center_position": [225, 85],
+        "item_3_center_position": [375, 85],
+        "item_4_center_position": [525, 85]
+    },
+
+    "take_items": {
+        "item_1_center_position": [75, 345],
+        "item_2_center_position": [225, 345],
+        "item_3_center_position": [375, 345],
+        "item_4_center_position": [525, 345]
+    },
+
+    "drawn_text": {
+
+        "rap_sent": {
+            "text": "Sent RAP: {give_rap}",
+            "font_file_name": "Rubik-Medium.ttf",
+            "font_size": 15,
+            "top_left_position": [650, 85],
+            "rgb": [0, 128, 0]
+        },
+        "value_sent": {
+            "text": "Sent Value: {give_roli_value}",
+            "font_file_name": "Rubik-Medium.ttf",
+            "font_size": 15,
+            "top_left_position": [650, 130],
+            "rgb": [0, 128, 255]
+        },
+        "rap_received": {
+            "text": "Sent RAP: {take_rap}",
+            "font_file_name": "Rubik-Medium.ttf",
+            "font_size": 15,
+            "top_left_position": [650, 85],
+            "rgb": [0, 128, 0]
+        },
+        "value_received": {
+            "text": "Sent Value: {take_roli_value}",
+            "font_file_name": "Rubik-Medium.ttf",
+            "font_size": 15,
+            "top_left_position": [650, 130],
+            "rgb": [0, 128, 255]
+        }
+
+    },
+
+    "drawn_images": {
+
+        "robux_symbol": {
+            "file_name": "robux.png",
+            "top_left_position": [0, 0],
+            "transparency": true
+        }
+
+    }
+}
