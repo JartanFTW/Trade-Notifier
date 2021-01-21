@@ -50,12 +50,7 @@
     },
 
     "drawn_images": {
-
-        "robux_symbol": {
-            "file_name": "robux.png",
-            "top_left_position": [0, 0],
-            "transparency": true
-        }
-
+        
     }
+
 }
