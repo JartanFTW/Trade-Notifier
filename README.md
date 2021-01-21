@@ -2,7 +2,8 @@
 A trade notifier for Roblox. Sends a Discord webhook whenever you complete a trade.  
 
 Contact:  
-Discord Server:  https://discord.gg/BkvDsaynvU  
+Email: jgogox@gmail.com  
+Discord Server: https://discord.gg/BkvDsaynvU  
 Discord User/Tag: Jartan#7450  
 Discord ID: 121343381069627392  
 
