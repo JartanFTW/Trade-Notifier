@@ -34,6 +34,8 @@ class User():
 
         await self.update_csrf()
 
+        await self.update_id()
+
         return self
 
 
