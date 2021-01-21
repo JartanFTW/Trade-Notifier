@@ -67,7 +67,7 @@ def print_timestamp(text: str):
 
 
 
-async def get_asset_image_url(self, item_ids: list, format: str = "Png", isCircular: str = "false", size: str = "110x110"):
+async def get_asset_image_url( item_ids: list, format: str = "Png", isCircular: str = "false", size: str = "110x110"):
 
     async with httpx.AsyncClient() as client:
         
@@ -101,7 +101,7 @@ async def get_asset_image_url(self, item_ids: list, format: str = "Png", isCircu
 
 
 
-async def get_pillow_object_from_url(self, url: str):
+async def get_pillow_object_from_url(url: str):
 
     async with httpx.AsyncClient() as client:
 
@@ -135,7 +135,7 @@ async def get_pillow_object_from_url(self, url: str):
 
 
 
-async def send_trade_webhook(self, webhook_url: str, text: str = None, attachment: BytesIO = None):
+async def send_trade_webhook(webhook_url: str, text: str = None, attachment: BytesIO = None):
 
     # attachment = BytesIO()
 
@@ -161,7 +161,7 @@ async def send_trade_webhook(self, webhook_url: str, text: str = None, attachmen
 
 
 
-async def get_roli_values(self):
+async def get_roli_values():
 
     async with httpx.AsyncClient() as client:
 
