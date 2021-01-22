@@ -98,7 +98,6 @@ class Worker():
                     # Creating give and take item lists
                     give_items = []
                     take_items = []
-                    print("Got to here!")
                     try:
                         for offer in trade_data["offers"]:
 
@@ -112,7 +111,6 @@ class Worker():
                                 if self.roli_values["items"][str(item["assetId"])][3] > 0:
                                     value = self.roli_values["items"][str(item["assetId"])][3]
                                 
-                                print(offer["user"]["id"])
                                 if offer["user"]["id"] == self.user.id:
 
                                     give_items.append({"id": item_id, "rap": rap, "roli_value": value})
@@ -139,7 +137,6 @@ class Worker():
                         # Building image
                         builder = ImageBuilder()
                         trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images)
-
 
 
                         try:
