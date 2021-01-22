@@ -36,14 +36,14 @@
             "text": "Sent RAP: {take_rap}",
             "font_file_name": "Rubik-Medium.ttf",
             "font_size": 15,
-            "top_left_position": [650, 85],
+            "top_left_position": [650, 345],
             "rgb": [0, 128, 0]
         },
         "value_received": {
             "text": "Sent Value: {take_roli_value}",
             "font_file_name": "Rubik-Medium.ttf",
             "font_size": 15,
-            "top_left_position": [650, 130],
+            "top_left_position": [650, 400],
             "rgb": [0, 128, 255]
         }
 
