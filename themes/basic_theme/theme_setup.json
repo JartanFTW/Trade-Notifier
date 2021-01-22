@@ -3,17 +3,17 @@
     "item_image_size": "110x110",
 
     "give_items": {
-        "item_1_center_position": [75, 85],
-        "item_2_center_position": [225, 85],
-        "item_3_center_position": [375, 85],
-        "item_4_center_position": [525, 85]
+        "item_1_center_position": [135, 145],
+        "item_2_center_position": [285, 145],
+        "item_3_center_position": [435, 145],
+        "item_4_center_position": [585, 145]
     },
 
     "take_items": {
-        "item_1_center_position": [75, 345],
-        "item_2_center_position": [225, 345],
-        "item_3_center_position": [375, 345],
-        "item_4_center_position": [525, 345]
+        "item_1_center_position": [135, 345],
+        "item_2_center_position": [285, 345],
+        "item_3_center_position": [435, 345],
+        "item_4_center_position": [585, 345]
     },
 
     "drawn_text": {
