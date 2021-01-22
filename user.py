@@ -20,6 +20,8 @@ import logging
 from utilities import UnknownResponse, InvalidCookie
 import sys
 
+logger = logging.getLogger("horizon.user")
+
 
 class User():
 
@@ -44,7 +46,7 @@ class User():
 
         while True:
 
-            logging.info("Updating user csrf token")
+            logger.info("Updating user csrf token")
 
             request = await self.client.post("https://auth.roblox.com/v1/logout")
 
@@ -52,13 +54,13 @@ class User():
 
                 self.client.cookies["X-CSRF-TOKEN"] = request.headers["x-csrf-token"]
 
-                logging.debug(f"Updated user csrf token: {request.headers['x-csrf-token']}")
+                logger.debug(f"Updated user csrf token: {request.headers['x-csrf-token']}")
 
                 return
             
             except KeyError:
 
-                logging.warning(f"Failed to update user csrf token: {request.status_code}")
+                logger.warning(f"Failed to update user csrf token: {request.status_code}")
 
                 if request.status_code == 429:
                     
@@ -68,13 +70,13 @@ class User():
 
                 elif request.status_code == 401:
 
-                    logging.critical("Cookie is invalid")
+                    logger.critical("Cookie is invalid")
                     
                     raise InvalidCookie(request.status_code, request.url, response_text = request.text)
             
                 else:
 
-                    logging.critical(f"Encountered an unknown response code while updating user csrf: {request.status_code}")
+                    logger.critical(f"Encountered an unknown response code while updating user csrf: {request.status_code}")
 
                     raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
@@ -86,19 +88,19 @@ class User():
 
         while True:
 
-            logging.info("Updating user id")
+            logger.info("Updating user id")
 
             request = await self.client.get("https://www.roblox.com/game/GetCurrentUser.ashx")
 
             if request.status_code == 200 and request.text != "null":
 
-                self.id = request.text
+                self.id = int(request.text)
 
-                logging.debug(f"Updated user id: {request.text}")
+                logger.debug(f"Updated user id: {request.text}")
 
                 return
             
-            logging.warning(f"Failed to update user id: {request.status_code}")
+            logger.warning(f"Failed to update user id: {request.status_code}")
 
             if request.status_code == 429:
 
@@ -112,11 +114,11 @@ class User():
                 
                 if attempt > 2:
                     
-                    logging.critical(f"Unable to update user id: {request.status_code}")
+                    logger.critical(f"Unable to update user id: {request.status_code}")
 
                     raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
-                logging.error(f"Unable to update user id: {request.status_code}")
+                logger.error(f"Unable to update user id: {request.status_code}")
                 
                 await self.update_csrf()
 
@@ -130,7 +132,7 @@ class User():
 
         while True:
 
-            logging.info("Grabbing user trade status data")
+            logger.info("Grabbing user trade status data")
 
             request = await self.client.get(f"https://trades.roblox.com/v1/trades/{tradeStatusType}?limit={limit}&sortOrder={sortOrder}")
 
@@ -138,11 +140,11 @@ class User():
 
                 request_json = request.json()
 
-                logging.debug(f"Grabbed user trade status data: {request_json}")
+                logger.debug(f"Grabbed user trade status data: {request_json}")
 
                 return request_json
 
-            logging.warning(f"Failed to grab user trade status data: {request.status_code}")
+            logger.warning(f"Failed to grab user trade status data: {request.status_code}")
 
             if request.status_code == 429:
 
@@ -156,11 +158,11 @@ class User():
 
                 if attempt > 2:
 
-                    logging.critical(f"Unable to grab user trade status data: {request.status_code}")
+                    logger.critical(f"Unable to grab user trade status data: {request.status_code}")
 
                     raise UnknownResponse(request.status_code, request.url, response_text = request.text)
                 
-                logging.error(f"Unable to grab user trade status data: {request.status_code}")
+                logger.error(f"Unable to grab user trade status data: {request.status_code}")
 
                 await self.update_csrf
 
@@ -174,7 +176,7 @@ class User():
 
         while True:
 
-            logging.info("Grabbing user trade data")
+            logger.info("Grabbing user trade data")
 
             request = await self.client.get(f"https://trades.roblox.com/v1/trades/{trade_id}")
 
@@ -182,11 +184,11 @@ class User():
 
                 request_json = request.json()
 
-                logging.debug(f"Grabbed user trade data: {request_json}")
+                logger.debug(f"Grabbed user trade data: {request_json}")
 
                 return request_json
 
-            logging.warning(f"Failed to grab user trade data: {request.status_code}")
+            logger.warning(f"Failed to grab user trade data: {request.status_code}")
 
             if request.status_code == 429:
 
@@ -200,11 +202,11 @@ class User():
 
                 if attempt > 2:
 
-                    logging.critical(f"Unable to grab user trade data: {request.status_code}")
+                    logger.critical(f"Unable to grab user trade data: {request.status_code}")
 
                     raise UnknownResponse(request.status_code, request.url, response_text = request.text)
                 
-                logging.error(f"Unable to grab user trade data: {request.status_code}")
+                logger.error(f"Unable to grab user trade data: {request.status_code}")
 
                 await self.update_csrf
 
