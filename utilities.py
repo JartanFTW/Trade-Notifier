@@ -137,7 +137,7 @@ async def get_pillow_object_from_url(url: str):
 
 
 
-async def send_trade_webhook(webhook_url: str, content: str = None, attachments: list = None):
+async def send_trade_webhook(webhook_url: str, attachments: list = None): # TODO Rewrite properly utilizing **kwargs for custom request stuffs.
 
     files = {}
     for i in range(len(attachments)):
@@ -147,7 +147,7 @@ async def send_trade_webhook(webhook_url: str, content: str = None, attachments:
 
         logger.info("Sending trade webhook")
 
-        request = await client.post(webhook_url, data = {"content": content}, files = files)
+        request = await client.post(webhook_url, files = files)
     
     if request.status_code == 200:
 
