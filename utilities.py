@@ -24,6 +24,8 @@ from io import BytesIO
 import os
 from configparser import ConfigParser
 
+logger = logging.getLogger("horizon.utilities")
+
 
 
 class UnknownResponse(Exception):
@@ -38,7 +40,7 @@ class UnknownResponse(Exception):
 
             self.err = f"Unknown response code {response_code} was received."
 
-            logging.critical(f"An unknown response {response_code} was received when calling {request_url}")
+            logger.critical(f"An unknown response {response_code} was received when calling {request_url}")
 
             super().__init__(self.err)
 
@@ -56,7 +58,7 @@ class InvalidCookie(Exception):
 
         self.err = f"Input cookie is invalid and returned response code {response_code}."
 
-        logging.critical(f"An invalid cookie was detected with response code {response_code} when calling {request_url}")
+        logger.critical(f"An invalid cookie was detected with response code {response_code} when calling {request_url}")
 
         super().__init__(self.err)
 
@@ -73,7 +75,7 @@ async def get_asset_image_url( item_ids: list, format: str = "Png", isCircular: 
         
         while True:
 
-            logging.info("Grabbing asset image urls")
+            logger.info("Grabbing asset image urls")
 
             request = await client.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={',+'.join(item_ids)}&format={format}&isCircular={isCircular}&size={size}")
 
@@ -81,11 +83,11 @@ async def get_asset_image_url( item_ids: list, format: str = "Png", isCircular: 
 
                 request_json = request.json()
 
-                logging.debug(f"Grabbed asset image urls: {request_json}")
+                logger.debug(f"Grabbed asset image urls: {request_json}")
 
                 return request_json
 
-            logging.warning(f"Failed to grab asset image urls: {request.status_code}")
+            logger.warning(f"Failed to grab asset image urls: {request.status_code}")
 
             if request.status_code == 429:
 
@@ -95,7 +97,7 @@ async def get_asset_image_url( item_ids: list, format: str = "Png", isCircular: 
 
             else:
 
-                logging.critical(f"Encountered an unhandled response code while updating user csrf: {request.status_code}")
+                logger.critical(f"Encountered an unhandled response code while updating user csrf: {request.status_code}")
 
                 raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
@@ -107,7 +109,7 @@ async def get_pillow_object_from_url(url: str):
 
         while True:
 
-            logging.info(f"Creating pillow Image object from url: {url}")
+            logger.info(f"Creating pillow Image object from url: {url}")
 
             request = await client.get(url)
 
@@ -115,11 +117,11 @@ async def get_pillow_object_from_url(url: str):
                 
                 p_obj = Image.open(request)
 
-                logging.debug(f"Created pillow Image object from url: {url}")
+                logger.debug(f"Created pillow Image object from url: {url}")
 
                 return p_obj
             
-            logging.warning(f"Failed to create pillow Image object from url: {request.status_code}")
+            logger.warning(f"Failed to create pillow Image object from url: {request.status_code}")
 
             if request.status_code == 429:
 
@@ -129,33 +131,33 @@ async def get_pillow_object_from_url(url: str):
 
             else:
 
-                logging.critical(f"Encountered an unknown response code while creating pillow Image object from url: {request.status_code}")
+                logger.critical(f"Encountered an unknown response code while creating pillow Image object from url: {request.status_code}")
 
                 raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
 
 
-async def send_trade_webhook(webhook_url: str, text: str = None, attachment: BytesIO = None):
+async def send_trade_webhook(webhook_url: str, content: str = None, attachments: list = None):
 
-    # attachment = BytesIO()
-
-    # pillow_image.save(attachment, "png")
-
-    # attachment.seek(0)
+    files = {}
+    for i in range(len(attachments)):
+        files[f"file_{i}"] = (attachments[i][0], attachments[i][1])
 
     async with httpx.AsyncClient() as client:
 
-        logging.info("Sending trade webhook")
+        logger.info("Sending trade webhook")
 
-        request = await client.post(webhook_url, data = {"content": text}, files = {"file": ("trade.png", attachment)})
+        request = await client.post(webhook_url, data = {"content": content}, files = files)
     
     if request.status_code == 200:
 
-        logging.debug("Sent trade webhook")
+        logger.debug("Sent trade webhook")
+
+        return
 
     else:
 
-        logging.error("Failed to send trade webhook")
+        logger.error("Failed to send trade webhook")
 
         raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
@@ -165,7 +167,7 @@ async def get_roli_values():
 
     async with httpx.AsyncClient() as client:
 
-        logging.info("Getting rolimon's values")
+        logger.info("Getting rolimon's values")
 
         request = await client.get("https://www.rolimons.com/itemapi/itemdetails")
 
@@ -173,13 +175,13 @@ async def get_roli_values():
 
         request_json = request.json()
 
-        logging.debug(f"Got rolimon's values: {request_json}")
+        logger.debug(f"Got rolimon's values: {request_json}")
 
         return request_json
     
     else:
 
-        logging.critical(f"Failed to update rolimons values: {request.status_code}")
+        logger.critical(f"Failed to update rolimons values: {request.status_code}")
 
         raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
