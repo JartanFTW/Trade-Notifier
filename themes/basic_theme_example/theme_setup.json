@@ -3,17 +3,17 @@
     "item_image_size": "110x110",
 
     "give_items": {
-        "item_1_center_position": [75, 85],
-        "item_2_center_position": [225, 85],
-        "item_3_center_position": [375, 85],
-        "item_4_center_position": [525, 85]
+        "item_1_center_position": [135, 145],
+        "item_2_center_position": [285, 145],
+        "item_3_center_position": [435, 145],
+        "item_4_center_position": [585, 145]
     },
 
     "take_items": {
-        "item_1_center_position": [75, 345],
-        "item_2_center_position": [225, 345],
-        "item_3_center_position": [375, 345],
-        "item_4_center_position": [525, 345]
+        "item_1_center_position": [135, 405],
+        "item_2_center_position": [285, 405],
+        "item_3_center_position": [435, 405],
+        "item_4_center_position": [585, 405]
     },
 
     "drawn_text": {
@@ -36,17 +36,17 @@
             "text": "Sent RAP: {take_rap}",
             "font_file_name": "Rubik-Medium.ttf",
             "font_size": 15,
-            "top_left_position": [650, 85],
+            "top_left_position": [650, 345],
             "rgb": [0, 128, 0]
         },
         "value_received": {
             "text": "Sent Value: {take_roli_value}",
             "font_file_name": "Rubik-Medium.ttf",
             "font_size": 15,
-            "top_left_position": [650, 130],
+            "top_left_position": [650, 400],
             "rgb": [0, 128, 255]
         }
-
+    
     },
 
     "drawn_images": {

@@ -124,7 +124,7 @@ class ImageBuilder(Exception):
             image = self.images[image_name]
 
             mask = None
-            if image["transparency"] == True:
+            if image_data["transparency"] == True:
 
                 mask = self.images[image_name]
             
