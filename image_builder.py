@@ -47,15 +47,13 @@ class ImageBuilder(Exception):
         self.stitch_images()
         self.draw_text()
 
-        self.background.show()
-
         image = BytesIO()
 
         self.background.save(image, "PNG")
 
         image.seek(0)
 
-        return self.background
+        return image
 
 
 
