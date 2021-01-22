@@ -21,19 +21,41 @@ import json
 
 class ImageBuilder(Exception):
 
-    def __init__(self, theme_folder_path: str, give_items: list, take_items: list, item_images: dict):
+    def __init__(self):
+        pass
+
+
+
+    def build_image(self, theme_folder_path: str, give_items: list, take_items: list, item_images: dict):
 
         self.theme_folder_path = theme_folder_path
-
         self.give_items = give_items
-
         self.take_items = take_items
-
         self.item_images = item_images
 
         self.images = {}
-
         self.fonts = {}
+        self.settings = None
+        self.background = None
+
+        self.load_settings()
+        self.load_background()
+        self.load_images()
+        self.load_fonts()
+        self.stitch_give_item_images()
+        self.stitch_take_item_images()
+        self.stitch_images()
+        self.draw_text()
+
+        self.background.show()
+
+        image = BytesIO()
+
+        self.background.save(image, "PNG")
+
+        image.seek(0)
+
+        return self.background
 
 
 
@@ -52,14 +74,14 @@ class ImageBuilder(Exception):
 
     def load_images(self):
 
-        for image_name, image_data in self.settings["drawn_images"]:
+        for image_name, image_data in self.settings["drawn_images"].items():
             self.images[image_name] = Image.open(os.path.join(self.theme_folder_path, image_data["file_name"]))
     
 
 
     def load_fonts(self):
         
-        for text_name, text_data in self.settings["drawn_text"]:
+        for text_name, text_data in self.settings["drawn_text"].items():
             self.fonts[text_name] = ImageFont.truetype(os.path.join(self.theme_folder_path, text_data["font_file_name"]), text_data["font_size"])
 
 
@@ -73,8 +95,8 @@ class ImageBuilder(Exception):
             except IndexError:
                 break
             
-            x = self.settings["give_items"][i][0] - (item_image.width / 2)
-            y = self.settings["give_items"][i][1] + (item_image.height / 2)
+            x = self.settings["give_items"][f"item_{i+1}_center_position"][0] - (item_image.width / 2)
+            y = self.settings["give_items"][f"item_{i+1}_center_position"][1] - (item_image.height / 2)
             box = (int(round(x)), int(round(y)))
 
             self.background.paste(item_image, mask = item_image, box = box)
@@ -89,9 +111,8 @@ class ImageBuilder(Exception):
                 item_image = self.item_images[str(self.take_items[i]["id"])]
             except IndexError:
                 break
-            
-            x = self.settings["take_items"][i][0] - (item_image.width / 2)
-            y = self.settings["take_items"][i][1] + (item_image.height / 2)
+            x = self.settings["take_items"][f"item_{i+1}_center_position"][0] - (item_image.width / 2)
+            y = self.settings["take_items"][f"item_{i+1}_center_position"][1] - (item_image.height / 2)
             box = (int(round(x)), int(round(y)))
 
             self.background.paste(item_image, mask = item_image, box = box)
@@ -100,7 +121,7 @@ class ImageBuilder(Exception):
 
     def stitch_images(self):
 
-        for image_name, image_data in self.settings["drawn_images"]:
+        for image_name, image_data in self.settings["drawn_images"].items():
 
             image = self.images[image_name]
 
@@ -119,7 +140,7 @@ class ImageBuilder(Exception):
 
         draw = ImageDraw.Draw(self.background)
 
-        for text_name, text_data in self.settings["drawn_text"]:
+        for text_name, text_data in self.settings["drawn_text"].items():
 
             box = tuple(text_data["top_left_position"])
 
