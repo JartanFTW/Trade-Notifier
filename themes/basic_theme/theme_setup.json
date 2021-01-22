@@ -10,10 +10,10 @@
     },
 
     "take_items": {
-        "item_1_center_position": [135, 345],
-        "item_2_center_position": [285, 345],
-        "item_3_center_position": [435, 345],
-        "item_4_center_position": [585, 345]
+        "item_1_center_position": [135, 405],
+        "item_2_center_position": [285, 405],
+        "item_3_center_position": [435, 405],
+        "item_4_center_position": [585, 405]
     },
 
     "drawn_text": {
