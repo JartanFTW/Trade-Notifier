@@ -98,58 +98,55 @@ class Worker():
                     # Creating give and take item lists
                     give_items = []
                     take_items = []
+                    for offer in trade_data["offers"]:
+
+                        for item in offer["userAssets"]:
+
+                            item_id = item["assetId"]
+
+                            rap = self.roli_values["items"][str(item["assetId"])][2]
+
+                            value = 0
+                            if self.roli_values["items"][str(item["assetId"])][3] > 0:
+                                value = self.roli_values["items"][str(item["assetId"])][3]
+                            
+                            if offer["user"]["id"] == self.user.id:
+
+                                give_items.append({"id": item_id, "rap": rap, "roli_value": value})
+                            
+                            else:
+
+                                take_items.append({"id": item_id, "rap": rap, "roli_value": value})
+
+                    # Loading image size
+                    with open(os.path.join(theme_folder_path, "theme_setup.json")) as settings:
+                        item_image_size = json.load(settings)["item_image_size"]
+
+
+                    # Getting item images
+                    item_ids = [str(item["id"]) for item in give_items + take_items]
+
+                    item_image_urls = await get_asset_image_url(item_ids = item_ids, size = item_image_size)
+
+                    item_images = {}
+                    for item in item_image_urls["data"]:
+                        item_images[str(item["targetId"])] = await get_pillow_object_from_url(item["imageUrl"])
+
+
+                    # Building image
+                    builder = ImageBuilder()
+                    trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images)
+
+
                     try:
-                        for offer in trade_data["offers"]:
 
-                            for item in offer["userAssets"]:
+                        await send_trade_webhook(self.webhook_url, attachments = [("trade.png", trade_image)])
 
-                                item_id = item["assetId"]
+                        print_timestamp(f"Sent confirmed trade webhook: {trade['id']}")
 
-                                rap = self.roli_values["items"][str(item["assetId"])][2]
+                    except UnknownResponse as e:
 
-                                value = 0
-                                if self.roli_values["items"][str(item["assetId"])][3] > 0:
-                                    value = self.roli_values["items"][str(item["assetId"])][3]
-                                
-                                if offer["user"]["id"] == self.user.id:
-
-                                    give_items.append({"id": item_id, "rap": rap, "roli_value": value})
-                                
-                                else:
-
-                                    take_items.append({"id": item_id, "rap": rap, "roli_value": value})
-
-                        # Loading image size
-                        with open(os.path.join(theme_folder_path, "theme_setup.json")) as settings:
-                            item_image_size = json.load(settings)["item_image_size"]
-
-
-                        # Getting item images
-                        item_ids = [str(item["id"]) for item in give_items + take_items]
-
-                        item_image_urls = await get_asset_image_url(item_ids = item_ids, size = item_image_size)
-
-                        item_images = {}
-                        for item in item_image_urls["data"]:
-                            item_images[str(item["targetId"])] = await get_pillow_object_from_url(item["imageUrl"])
-
-
-                        # Building image
-                        builder = ImageBuilder()
-                        trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images)
-
-
-                        try:
-
-                            await send_trade_webhook(self.webhook_url, attachments = [("trade.png", trade_image)])
-
-                            print_timestamp(f"Sent confirmed trade webhook: {trade['id']}")
-
-                        except UnknownResponse as e:
-
-                            print_timestamp(f"Unable to send trade webhook: {trade['id']} got response {e.response_code}")
-                    except Exception:
-                        print(traceback.print_exc())
+                        print_timestamp(f"Unable to send trade webhook: {trade['id']} got response {e.response_code}")
             
             await asyncio.sleep(self.completed_trade_update_interval)
 
