@@ -1,323 +1,182 @@
+#  Copyright 2021 Jonathan Carter
+
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+
+#        http://www.apache.org/licenses/LICENSE-2.0
+
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+
+
 import httpx
 import json
 from configparser import ConfigParser
 import logging
 import os
-import time
 import asyncio
 import traceback
-import PIL
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import sys
+from image_builder import ImageBuilder
+from utilities import *
+from user import User
 
-print("Horizon Trade Notifier - Jartan#7450 - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+version = "v0.2.0-alpha"
 
-clear = lambda: os.system("cls")
-
-def print_console(text, logging_level=20):
-    print(time.strftime('%H:%M:%S | ', time.localtime()) + str(text))
-    logging.log(logging_level, str(text))
-
-def setup_logging(level=40):
-
-    path = os.path.dirname(os.path.abspath(__file__))
-
-    logs_folder_path = os.path.join(path, "logs")
-
-    if not os.path.exists(logs_folder_path):
-        os.makedirs(logs_folder_path)
-    
-    log_path = os.path.join(logs_folder_path, time.strftime('%m %d %Y %H %M %S', time.localtime()))
-
-    logging.basicConfig(filename=f"{log_path}.log", level=level, format="%(asctime)s:%(levelname)s:%(message)s")
-
-
-
-def load_config():
-    parser = ConfigParser()
-
-    parser.read(os.path.join(os.path.dirname(os.path.abspath(__file__)), "notifier_config.ini"))
-
-    config = {}
-
-    config["webhook"] = str(parser["GENERAL"]["webhook"]).strip()
-    config["cookie"] = ".ROBLOSECURITY=_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser["GENERAL"]["cookie"]).split("_")[-1] + ";"
-    config["rolimons_update_interval"] = int(parser["GENERAL"]["rolimons_update_interval"])
-    config["completed_trade_update_interval"] = int(parser["GENERAL"]["completed_trade_update_interval"])
-    config["logging_level"] = int(parser["DEBUG"]["logging_level"])
-    return config
+logger = logging.getLogger("horizon.main")
 
 class Worker():
 
-    def __init__(self, webhook, cookie, rolimons_update_interval, completed_trade_update_interval):
-        self.webhook = webhook
-        self.cookie = cookie
+    @classmethod
+    async def create(cls, user: User, webhook_url: str, rolimons_update_interval: int, completed_trade_update_interval: int, theme_name: str):
+        
+        self = Worker()
+
+        self.user = user
+        self.webhook_url = webhook_url
         self.rolimons_update_interval = rolimons_update_interval
         self.completed_trade_update_interval = completed_trade_update_interval
-    
-    async def async_init(self):
-        self.client = httpx.AsyncClient()
-        
-        print_console("Performing initialization ID grab.", 20)
-        await self.update_id()
-        
-        print_console("Performing initialization csrf update.", 20)
-        await self.update_csrf()
+        self.theme_name = theme_name
 
-        logging.debug(f"Initialization csrf token: {self.csrf}")
-
-        print_console("Performing initialization trades grab.", 20)
         self.old_trades = []
-        trades_json = await self.get_completed_trades()
-        for trade in trades_json["data"][::-1]:
+        self.roli_values = None
+
+        trade_datas = await self.user.get_trade_status_data(tradeStatusType = "Completed")
+        for trade in trade_datas["data"][::-1]:
             self.old_trades.append(trade["id"])
         
-        logging.debug(f"Initialization trade request json: {trades_json}")
-        logging.debug(f"Initialization old_trades: {self.old_trades}")
+        return self
     
 
-    async def update_id(self):
 
-        request = await self.client.get("https://www.roblox.com/game/GetCurrentUser.ashx", headers={"Cookie": self.cookie})
-
-        if request.status_code == 403 or request.text == "null":
-            
-            logging.critical(f"Couldn't update user id: {request.status_code}")
-
-            print_console("Cookie is invalid.", 50)
-
-            await self.client.aclose()
-
-            sys.exit()
-        
-        self.id = int(request.text)
-
-
-    async def grab_rolimons_values(self):
-
-        request = await self.client.get("https://www.rolimons.com/itemapi/itemdetails")
-
-        request_json = request.json()
-
-        return request_json["items"]
-    
     async def rolimons_loop(self):
+
         while True:
 
-            self.roli_values = await self.grab_rolimons_values()
-
-            print_console("Updated rolimons values.", 20)
+            self.roli_values = await get_roli_values()
 
             await asyncio.sleep(self.rolimons_update_interval)
     
-    async def update_csrf(self):
+
+
+    async def completed_trade_loop(self):
+        while True: # Making sure roli values are initialized
+            if isinstance(self.roli_values, dict):
+                break
+            self.roli_values = await get_roli_values()
 
         while True:
-
-            request = await self.client.post("https://auth.roblox.com/v1/logout", headers={"Cookie": self.cookie})
-
-            try:
-
-                self.csrf = request.headers["x-csrf-token"]
-
-                print_console(f"Updated csrf token: {self.csrf}", 20)
-
-                return
-
-            except KeyError:
-
-                if request.status_code == 429:
-                    
-                    logging.info("Couldn't update csrf token: 429")
-
-                    continue
-                
-                if request.status_code == 401:
-
-                    logging.critical("Couldn't update csrf token: 401")
-
-                    print_console("Cookie is invalid.", 50)
-
-                    await self.client.aclose()
-
-                    sys.exit()
-                
-                else:
-
-                    print_console(f"An unknown critical error occurred while updating csrf token. Unknown response code: {request.status_code}", 50)
-
-                    await self.client.aclose()
-
-                    sys.exit()
-
-    async def get_completed_trades(self):
-
-        request = await self.client.get("https://trades.roblox.com/v1/trades/Completed?limit=10&sortOrder=Asc", headers={"Cookie": self.cookie, "X-CSRF-TOKEN": self.csrf})
-
-        request_json = request.json()
-
-        logging.debug(f"Completed trades json: {request_json}")
-
-        return request_json
-    
-    async def get_trade_data(self, trade_id):
-        request = await self.client.get(f"https://trades.roblox.com/v1/trades/{trade_id}", headers={"Cookie": self.cookie, "X-CSRF-TOKEN": self.csrf})
-
-        request_json = request.json()
-
-        logging.debug(f"Trade details json: {request_json}")
-
-        return request_json
-
-    async def get_asset_images_urls(self, ids):
-        request = await self.client.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={',+'.join(ids)}&format=Png&isCircular=false&size=110x110")
-
-        request_json = request.json()
-
-        return request_json
-    
-    async def get_asset_image_object(self, url):
-        request = await self.client.get(url)
-
-        image = Image.open(request)
-
-        return image
-
-
-    async def generate_image(self, trade): #TODO REWORK TO ALLOW CONFIG CUSTOM BACKGROUNDS
-
-        id_list = []
-
-        for offer in trade["offers"]:
-            for item in offer["userAssets"]:
-                id_list.append(str(item["assetId"]))
-
-        image_urls = await self.get_asset_images_urls(id_list)
-
-        trade_image = Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "background.png"))
-
-        image_objects = {}
-        for item in image_urls["data"]:
-            if item["state"] == "Completed":
-                image_objects[str(item["targetId"])] = await self.get_asset_image_object(item["imageUrl"])
-        
-        for side in trade["offers"]:
-            if side["user"]["id"] == self.id:
-                for i in range(len(side["userAssets"])):
-
-                    item = side["userAssets"][i]
-           
-                    try:
-                        trade_image.paste(image_objects[str(item["assetId"])], mask = image_objects[str(item["assetId"])], box=(75 + 120*i + 30*i, 85))
-                    except KeyError:
-                        continue
             
-            else:
-        
-                for i in range(len(side["userAssets"])):
+            print_timestamp("Checking confirmed trades")
 
-                    item = side["userAssets"][i]
+            trades_data = await self.user.get_trade_status_data(tradeStatusType = "Completed")
 
-                    try:
-                        trade_image.paste(image_objects[str(item["assetId"])], mask = image_objects[str(item["assetId"])], box=(75 + 120*i + 30*i, 345))
-                    except KeyError:
-                        continue
-        
-        draw = ImageDraw.Draw(trade_image)
-        font = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Rubik-Medium.ttf"), 25)
+            for trade in trades_data["data"][::-1]:
 
-        rap_offered = 0
-        value_offered = 0
-
-        for item in trade["offers"][0]["userAssets"]:
-            rap_offered += self.roli_values[str(item["assetId"])][2]
-            if self.roli_values[str(item["assetId"])][3] > 0:
-                value_offered += self.roli_values[str(item["assetId"])][3]
-
-    
-        rap_received = 0
-        value_received = 0
-
-        for item in trade["offers"][1]["userAssets"]:
-            rap_received += self.roli_values[str(item["assetId"])][2]
-            if self.roli_values[str(item["assetId"])][3] > 0:
-                value_received += self.roli_values[str(item["assetId"])][3]
-
-        draw.text((650, 85), f"Rap offered: {rap_offered}", font=font, fill = (0, 128, 0))
-        draw.text((650, 345), f"Rap offered: {rap_received}", font=font, fill = (0, 128, 0))
-        draw.text((650, 130), f"Value offered: {value_offered}", font=font, fill = (0, 128, 255))
-        draw.text((650, 400), f"Value offered: {value_received}", font=font, fill = (0, 128, 255))
-
-        return trade_image
-
-    async def send_webhook(self, pillow_image):
-
-        attachment = BytesIO()
-
-        pillow_image.save(attachment, "png")
-
-        attachment.seek(0)
-
-        request = await self.client.post(self.webhook, files={"file1": ("trade.png", attachment)})
-        
-        if request.status_code != 200:
-            print(f"Unable to send webhook: {request.status_code}")
-    
-
-    async def check_confirmed_trades_loop(self):
-                                        
-        if not isinstance(self.csrf, str):
-            await self.update_csrf()
-
-        while True:
-                                        
-            print_console("Checking confirmed trades.", 20)
-
-            trades_json = await self.get_completed_trades()
-            for trade in trades_json["data"][::-1]:
                 if trade["id"] not in self.old_trades:
-
-                    print_console(f"Found new confirmed trade: {trade['id']}", 20)
-
-                    trade_data = await self.get_trade_data(trade["id"])
-
-                    trade_picture = await self.generate_image(trade_data)
-
-                    await self.send_webhook(trade_picture)
-                                        
-                    print_console("Sent confirmed trade webhook.", 20)
 
                     self.old_trades.append(trade["id"])
 
                     if len(self.old_trades) > 10:
                         del self.old_trades[0:-10]
-                    
-                    logging.debug(f"Updated old trades: {self.old_trades}")
+
+                    print_timestamp(f"Found new confirmed trade: {trade['id']}")
+
+                    trade_data = await self.user.get_trade_data(trade["id"])
+
+                    themes_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "themes")
+
+                    theme_folder_path = os.path.join(themes_folder_path, self.theme_name)
+
+                    # Creating give and take item lists
+                    give_items = []
+                    take_items = []
+                    for offer in trade_data["offers"]:
+
+                        for item in offer["userAssets"]:
+
+                            item_id = item["assetId"]
+
+                            rap = self.roli_values["items"][str(item["assetId"])][2]
+
+                            value = 0
+                            if self.roli_values["items"][str(item["assetId"])][3] > 0:
+                                value = self.roli_values["items"][str(item["assetId"])][3]
+                            
+                            if offer["user"]["id"] == self.user.id:
+
+                                give_items.append({"id": item_id, "rap": rap, "roli_value": value})
+                            
+                            else:
+
+                                take_items.append({"id": item_id, "rap": rap, "roli_value": value})
+
+                    # Loading image size
+                    with open(os.path.join(theme_folder_path, "theme_setup.json")) as settings:
+                        item_image_size = json.load(settings)["item_image_size"]
+
+
+                    # Getting item images
+                    item_ids = [str(item["id"]) for item in give_items + take_items]
+
+                    item_image_urls = await get_asset_image_url(item_ids = item_ids, size = item_image_size)
+
+                    item_images = {}
+                    for item in item_image_urls["data"]:
+                        item_images[str(item["targetId"])] = await get_pillow_object_from_url(item["imageUrl"])
+
+
+                    # Building image
+                    builder = ImageBuilder()
+                    trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images)
+
+
+                    try:
+
+                        await send_trade_webhook(self.webhook_url, attachments = [("trade.png", trade_image)])
+
+                        print_timestamp(f"Sent confirmed trade webhook: {trade['id']}")
+
+                    except UnknownResponse as e:
+
+                        print_timestamp(f"Unable to send trade webhook: {trade['id']} got response {e.response_code}")
             
             await asyncio.sleep(self.completed_trade_update_interval)
-    
-    async def run_workers(self):
 
-        tasks = []
-        tasks.append(asyncio.create_task(self.rolimons_loop()))
-        tasks.append(asyncio.create_task(self.check_confirmed_trades_loop()))
-
-        await asyncio.wait(tasks)
-        await self.client.aclose()
 
 
 async def main():
 
-    config = load_config()
+    config = load_config(os.path.join(os.path.dirname(os.path.abspath(__file__)), "horizon_config.ini"))
 
-    setup_logging(config["logging_level"])
+    setup_logging(os.path.dirname(os.path.abspath(__file__)), level = config["logging_level"])
 
-    worker = Worker(config["webhook"], config["cookie"], config["rolimons_update_interval"], config["completed_trade_update_interval"])
+    print_timestamp(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+    logging.info(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
 
-    await worker.async_init()
-    
-    await worker.run_workers()
+    user = await User.create(config["cookie"])
+
+    worker = await Worker.create(user, config["webhook"], config["rolimons_update_interval"], config["completed_trade_update_interval"], config["theme_name"])
+
+    tasks = []
+
+    tasks.append(asyncio.create_task(worker.rolimons_loop()))
+    tasks.append(asyncio.create_task(worker.completed_trade_loop()))
+
+    await asyncio.wait(tasks)
+
+
+
+
+
+
 
 
 
