@@ -28,7 +28,7 @@ from image_builder import ImageBuilder
 from utilities import *
 from user import User
 
-version = "v0.2.0-alpha"
+version = "v0.2.1-alpha"
 
 logger = logging.getLogger("horizon.main")
 
