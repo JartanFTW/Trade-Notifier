@@ -26,12 +26,13 @@ class ImageBuilder(Exception):
 
 
 
-    def build_image(self, theme_folder_path: str, give_items: list, take_items: list, item_images: dict):
+    def build_image(self, theme_folder_path: str, give_items: list, take_items: list, item_images: dict, trade_info: dict):
 
         self.theme_folder_path = theme_folder_path
         self.give_items = give_items
         self.take_items = take_items
         self.item_images = item_images
+        self.trade_info = trade_info
 
         self.images = {}
         self.fonts = {}
@@ -162,11 +163,24 @@ class ImageBuilder(Exception):
 
         take_roli_value = sum(item["roli_value"] for item in self.take_items)
 
+        give_username = self.trade_info["give_username"]
+        
+        take_username = self.trade_info["take_username"]
+
+        give_user_id = str(self.trade_info["give_user_id"])
+
+        take_user_id = str(self.trade_info["take_user_id"])
+        
+
         text = text.format(
             give_rap = give_rap, 
             give_roli_value = give_roli_value, 
             take_rap = take_rap, 
-            take_roli_value = take_roli_value
+            take_roli_value = take_roli_value,
+            give_username = give_username,
+            take_username = take_username,
+            give_user_id = give_user_id,
+            take_user_id = take_user_id
             )
 
         return text
