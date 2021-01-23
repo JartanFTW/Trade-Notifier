@@ -142,7 +142,7 @@ class Worker():
 
                     trade_info["give_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
 
-                    trade_info["take_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
+                    trade_info["take_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] != self.user.id][0])
                     
                     
                     # Building image
