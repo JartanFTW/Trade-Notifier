@@ -131,13 +131,26 @@ class Worker():
                     item_images = {}
                     for item in item_image_urls["data"]:
                         item_images[str(item["targetId"])] = await get_pillow_object_from_url(item["imageUrl"])
+                    
 
+                    # Generating trade data
+                    trade_info = {}
 
+                    trade_info["give_username"] = str([offer["user"]["displayName"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
+
+                    trade_info["take_username"] = str([offer["user"]["displayName"] for offer in trade_data["offers"] if offer["user"]["id"] != self.user.id][0])
+
+                    trade_info["give_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
+
+                    trade_info["take_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
+                    
+                    
                     # Building image
                     builder = ImageBuilder()
-                    trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images)
+                    trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images, trade_info)
 
 
+                    # Sending webhook
                     try:
 
                         await send_trade_webhook(self.webhook_url, attachments = [("trade.png", trade_image)])
