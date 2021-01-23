@@ -66,14 +66,14 @@ class ImageBuilder(Exception):
 
     def load_background(self):
 
-        self.background = Image.open(os.path.join(self.theme_folder_path, "background.png"))
+        self.background = Image.open(os.path.join(self.theme_folder_path, "background.png")).convert("RGBA")
 
     
 
     def load_images(self):
 
         for image_name, image_data in self.settings["drawn_images"].items():
-            self.images[image_name] = Image.open(os.path.join(self.theme_folder_path, image_data["file_name"]))
+            self.images[image_name] = Image.open(os.path.join(self.theme_folder_path, image_data["file_name"])).convert("RGBA")
     
 
 
