@@ -14,173 +14,160 @@
 
 
 
-from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
 import json
+from collections import OrderedDict
+from PIL import Image, ImageDraw, ImageFont
 
-class ImageBuilder(Exception):
-
-    def __init__(self):
+class NotificationBuilder(Exception):
+    
+    def __init__(self, theme_folder: str):
+        self.theme_folder = theme_folder
+        self.load_settings(theme_folder)
         pass
+        #TODO Add check to see if all required files by config are present.
 
+    def build_image(self, trade_data: dict):
+        """Takes in trade data and builds notification according to theme_setup, in the order that it's written in theme_setup.
+        """
+        notification = self.load_image(os.path.join(self.theme_folder, self.settings['background_image']))
+        for section, details in self.settings.items():
+            if section == "background_image":
+                continue
 
+            elif section in ("give", "take", "drawn_images"):
+                for item_name, item_details in details.items():
+                    background = notification
 
-    def build_image(self, theme_folder_path: str, give_items: list, take_items: list, item_images: dict, trade_info: dict):
+                    if section == "drawn_images":
+                        foreground = self.load_image(os.path.join(self.theme_folder, item_details['file_name']))
+                    else:
+                        try:
+                            foreground = trade_data[section]['items'][item_name]['pillowImage']
+                        except KeyError: # Catching keyerror for trades that have less than 4 items on a side
+                            continue
 
-        self.theme_folder_path = theme_folder_path
-        self.give_items = give_items
-        self.take_items = take_items
-        self.item_images = item_images
-        self.trade_info = trade_info
+                    foreground = self.resize_image(foreground, tuple(item_details['size']))
 
-        self.images = {}
-        self.fonts = {}
-        self.settings = None
-        self.background = None
+                    position = item_details['position']
 
-        self.load_settings()
-        self.load_background()
-        self.load_images()
-        self.load_fonts()
-        self.stitch_give_item_images()
-        self.stitch_take_item_images()
-        self.stitch_images()
-        self.draw_text()
+                    if item_details['center_on_position']:
+                        position[0] = int(round(position[0] - (item_details['size'][0]/2)))
+                        position[1] = int(round(position[1] - (item_details['size'][1]/2)))
+                    position = tuple(position)
+                    
+                    transparency = item_details['transparency']
+                    
+                    self.stitch_images(background, foreground, position, transparency=transparency)
+                    continue
 
-        image = BytesIO()
+            elif section == "drawn_text":
+                for text_details in details.values():
+                    background = notification
+                    position = tuple(text_details['position'])
+                    text = self.format_text(text_details['text'], trade_data=trade_data)
+                    rgba = tuple(text_details['rgba'])
+                    font = self.load_font(os.path.join(self.theme_folder, text_details['font_file']), font_size=text_details['font_size'])
+                    
+                    anchor = "la"
+                    if text_details['center_on_position']:
+                        anchor = "mm"
+                    
+                    stroke_rgba = tuple(text_details['stroke_rgba'])
+                    stroke_width = text_details['stroke_width']
 
-        self.background.save(image, "PNG")
+                    background = self.stitch_text(background, position, text, rgba=rgba, font=font, anchor=anchor, stroke_rgba=stroke_rgba, stroke_width=stroke_width)
+                    continue
 
-        image.seek(0)
+            else:
+                print(f"Unknown theme section: {section}")
+                continue
+        
+        notification_bytes = BytesIO()
+        notification.save(notification_bytes, "PNG")
+        notification_bytes.seek(0)
 
+        return notification_bytes
+
+    def load_settings(self, theme_folder: str):
+        """Loads a json file from the folder path provided + "theme_setup.json" into an OrderedDict as self.settings
+        """
+        json_path = os.path.join(theme_folder, "theme_setup.json")
+        with open(json_path) as config:
+            self.settings = json.load(config, object_pairs_hook = OrderedDict)
+    
+    def load_font(self, font_path: str, font_size: int):
+        """Loads a specified font from the path provided and returns the PIL ImageFont object
+        """
+        font = ImageFont.truetype(font_path, font_size)
+        return font
+    
+    def load_image(self, image_path: str):
+        """Loads a specific image from the path provided, converts it to RGBA, and returns the PIL Image object
+        """
+        image = Image.open(image_path).convert("RGBA")
         return image
-
-
-
-    def load_settings(self):
-
-        with open(os.path.join(self.theme_folder_path, "theme_setup.json")) as settings:
-            self.settings = json.load(settings)
-
-
-
-    def load_background(self):
-
-        self.background = Image.open(os.path.join(self.theme_folder_path, "background.png")).convert("RGBA")
-
     
-
-    def load_images(self):
-
-        for image_name, image_data in self.settings["drawn_images"].items():
-            self.images[image_name] = Image.open(os.path.join(self.theme_folder_path, image_data["file_name"])).convert("RGBA")
-    
-
-
-    def load_fonts(self):
-        
-        for text_name, text_data in self.settings["drawn_text"].items():
-            self.fonts[text_name] = ImageFont.truetype(os.path.join(self.theme_folder_path, text_data["font_file_name"]), text_data["font_size"])
-
-
-
-    def stitch_give_item_images(self):
-
-        for i in range(4):
-
-            try:
-                item_image = self.item_images[str(self.give_items[i]["id"])]
-            except IndexError:
-                break
-            
-            x = self.settings["give_items"][f"item_{i+1}_center_position"][0] - (item_image.width / 2)
-            y = self.settings["give_items"][f"item_{i+1}_center_position"][1] - (item_image.height / 2)
-            box = (int(round(x)), int(round(y)))
-
-            self.background.paste(item_image, mask = item_image, box = box)
-
-
-
-    def stitch_take_item_images(self):
-
-        for i in range(4):
-
-            try:
-                item_image = self.item_images[str(self.take_items[i]["id"])]
-            except IndexError:
-                break
-            x = self.settings["take_items"][f"item_{i+1}_center_position"][0] - (item_image.width / 2)
-            y = self.settings["take_items"][f"item_{i+1}_center_position"][1] - (item_image.height / 2)
-            box = (int(round(x)), int(round(y)))
-
-            self.background.paste(item_image, mask = item_image, box = box)
-
-
-
-    def stitch_images(self):
-
-        for image_name, image_data in self.settings["drawn_images"].items():
-
-            image = self.images[image_name]
-
+    def stitch_images(self, background: Image, foreground: Image, top_left_position: tuple, transparency: bool = False):
+        """Places PIL foreground onto PIL background at the top_left_position, passing foreground as the mask if transparency is True, and then returns the background
+        """
+        if not transparency:
             mask = None
-            if image_data["transparency"] == True:
-
-                mask = self.images[image_name]
-            
-            box = tuple(image_data["top_left_position"])
-
-            self.background.paste(image, mask = mask, box = box)
-
-
-
-    def draw_text(self):
-
-        draw = ImageDraw.Draw(self.background)
-
-        for text_name, text_data in self.settings["drawn_text"].items():
-
-            box = tuple(text_data["top_left_position"])
-
-            text = self.format_text(text_data["text"])
-
-            font = self.fonts[text_name]
-
-            fill = tuple(text_data["rgb"])
-
-            draw.text(box, text, font = font, fill = fill)
-
-
-
-    def format_text(self, text):
-
-        give_rap = sum(item["rap"] for item in self.give_items)
-
-        give_roli_value = sum(item["roli_value"] for item in self.give_items)
-
-        take_rap = sum(item["rap"] for item in self.take_items)
-
-        take_roli_value = sum(item["roli_value"] for item in self.take_items)
-
-        give_username = self.trade_info["give_username"]
+            alpha = foreground.convert("RGBA").split()[-1] # Getting alpha channel of foreground
+            new_foreground = Image.new("RGBA", foreground.size, (255,255,255,255)) # Creating image with white background
+            new_foreground.paste(foreground, mask=alpha) # Placing foreground on white background to remove all transparency
+            foreground = new_foreground
         
-        take_username = self.trade_info["take_username"]
+        mask = foreground
 
-        give_user_id = str(self.trade_info["give_user_id"])
-
-        take_user_id = str(self.trade_info["take_user_id"])
+        background.paste(foreground, box=top_left_position, mask=mask)
+    
+    def stitch_text(self, background: Image, position: tuple, text: str, rgba: tuple = None, font: ImageFont = None, anchor: str = "la", stroke_rgba: tuple = None, stroke_width: int = 0):
+        """Pillow documentation explains it better than I could: https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html#PIL.ImageDraw.ImageDraw.text
+        """
+        text_image = Image.new("RGBA", background.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(text_image)
+        draw.text(position, text, fill=rgba, font=font, anchor=anchor, stroke_fill=stroke_rgba, stroke_width=stroke_width)
+        background.paste(text_image, mask=text_image)
+        return background
+    
+    def resize_image(self, image: Image, size: tuple):
+        """Resizes a pillow image and returns it
+        """
+        resized_image = image.resize(size, resample=Image.LANCZOS)
+        return resized_image
+    
+    def format_text(self, text: str, trade_data: dict): #TODO ADD UNVALUED RAPS TO VALUE
+        """Formats different keywords for text stitching"""
+        give_rap = sum(item['recentAveragePrice'] for item in trade_data['give']['items'].values())
+        take_rap = sum(item['recentAveragePrice'] for item in trade_data['take']['items'].values())
         
+        give_roli_value = sum(item['roliValue'] for item in trade_data['give']['items'].values())
+        take_roli_value = sum(item['roliValue'] for item in trade_data['take']['items'].values())
+        if trade_data['addUnvaluedToValue']:
+            give_roli_value += sum(item['recentAveragePrice'] for item in trade_data['give']['items'].values() if item['roliValue'] == 0)
+            take_roli_value += sum(item['recentAveragePrice'] for item in trade_data['take']['items'].values() if item['roliValue'] == 0)
+        
+        give_user_id = str(trade_data['give']['user']['id'])
+        take_user_id = str(trade_data['take']['user']['id'])
+        give_user_name = trade_data['give']['user']['name']
+        take_user_name = trade_data['take']['user']['name']
+        give_user_display_name = trade_data['give']['user']['displayName']
+        take_user_display_name = trade_data['take']['user']['displayName']
+    
 
         text = text.format(
-            give_rap = give_rap, 
-            give_roli_value = give_roli_value, 
-            take_rap = take_rap, 
+            give_rap = give_rap,
+            take_rap = take_rap,
+            give_roli_value = give_roli_value,
             take_roli_value = take_roli_value,
-            give_username = give_username,
-            take_username = take_username,
             give_user_id = give_user_id,
-            take_user_id = take_user_id
+            take_user_id = take_user_id,
+            give_user_name = give_user_name,
+            take_user_name = take_user_name,
+            give_user_display_name = give_user_display_name,
+            take_user_display_name = take_user_display_name
             )
 
         return text
