@@ -13,16 +13,13 @@
 #    limitations under the License.
 
 
-
+import asyncio
+from configparser import ConfigParser
 import logging
+import os
+from PIL import Image
 import time
 import httpx
-import sys
-import asyncio
-from PIL import Image
-from io import BytesIO
-import os
-from configparser import ConfigParser
 
 logger = logging.getLogger("horizon.utilities")
 
@@ -69,7 +66,7 @@ def print_timestamp(text: str):
 
 
 
-async def get_asset_image_url( item_ids: list, format: str = "Png", isCircular: str = "false", size: str = "110x110"):
+async def get_asset_image_url(asset_ids: list, format: str = "Png", isCircular: str = "false", size: str = "110x110"):
 
     async with httpx.AsyncClient() as client:
         
@@ -77,7 +74,7 @@ async def get_asset_image_url( item_ids: list, format: str = "Png", isCircular: 
 
             logger.info("Grabbing asset image urls")
 
-            request = await client.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={',+'.join(item_ids)}&format={format}&isCircular={isCircular}&size={size}")
+            request = await client.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={',+'.join(asset_ids)}&format={format}&isCircular={isCircular}&size={size}")
 
             if request.status_code == 200:
 
@@ -163,11 +160,11 @@ async def send_trade_webhook(webhook_url: str, attachments: list = None): # TODO
 
 
 
-async def get_roli_values():
+async def get_roli_data():
 
     async with httpx.AsyncClient() as client:
 
-        logger.info("Getting rolimon's values")
+        logger.info("Getting rolimon's data")
 
         request = await client.get("https://www.rolimons.com/itemapi/itemdetails")
 
@@ -175,13 +172,13 @@ async def get_roli_values():
 
         request_json = request.json()
 
-        logger.debug(f"Got rolimon's values: {request_json}")
+        logger.debug(f"Got rolimon's data: {request_json}")
 
         return request_json
     
     else:
 
-        logger.critical(f"Failed to update rolimons values: {request.status_code}")
+        logger.critical(f"Failed to update rolimon's data: {request.status_code}")
 
         raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
@@ -208,10 +205,57 @@ def load_config(path: str):
 
     config = {}
 
-    config["webhook"] = str(parser["GENERAL"]["webhook"]).strip()
-    config["cookie"] = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser["GENERAL"]["cookie"]).split("_")[-1]
-    config["rolimons_update_interval"] = int(parser["GENERAL"]["rolimons_update_interval"])
-    config["completed_trade_update_interval"] = int(parser["GENERAL"]["completed_trade_update_interval"])
-    config["theme_name"] = str(parser["THEME"]["theme_name"])
-    config["logging_level"] = int(parser["DEBUG"]["logging_level"])
+    config['webhook'] = str(parser['GENERAL']['webhook']).strip()
+    config['cookie'] = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser['GENERAL']['cookie']).split("_")[-1]
+    config['add_unvalued_to_value'] = True if str(parser['GENERAL']['add_unvalued_to_value']).upper() == "TRUE" else False
+
+    config['completed'] = {}
+    config['completed']['enabled'] = True if str(parser['COMPLETED']['enabled']).upper() == "TRUE" else False
+    config['completed']['update_interval'] = int(parser['COMPLETED']['update_interval'])
+    config['completed']['theme_name'] = parser['COMPLETED']['theme_name']
+
+    config['inbound'] = {}
+    config['inbound']['enabled'] = True if str(parser['INBOUND']['enabled']).upper() == "TRUE" else False
+    config['inbound']['update_interval'] = int(parser['INBOUND']['update_interval'])
+    config['inbound']['theme_name'] = parser['INBOUND']['theme_name']
+
+    config['logging_level'] = int(parser['DEBUG']['logging_level'])
+    config['testing'] = True if str(parser['DEBUG']['testing']).upper() == "TRUE" else False
+    
     return config
+
+
+
+def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_unvalued_to_value: bool):
+    """Inputs roblox trade data, rolimons data, 'self' user_id to mark one of the trade info people as user, and unvalued to value
+    Outputs completely generated trade_data WITHOUT pillow images. After adding pillow images, ready to pass into NotificationBuilder
+    """
+    trade_data = {}
+    trade_data['addUnvaluedToValue'] = add_unvalued_to_value
+    trade_data['status'] = trade_info['status']
+    trade_data['give'] = {}
+    trade_data['take'] = {}
+
+    for offer in trade_info['offers']:
+        side = "give"
+        if offer['user']['id'] != user_id:
+            side = "take"
+        
+        trade_data[side]['user'] = offer['user']
+
+        trade_data[side]['items'] = {}
+        for item_num in range(len(offer['userAssets'])):
+            trade_data[side]['items'][f'item{item_num+1}'] = {} # Add + 1 so counting starts from 1 for user convenience
+
+            for key, value in offer['userAssets'][item_num].items():
+                trade_data[side]['items'][f'item{item_num+1}'][key] = value
+
+            value = 0
+            item_id = str(offer['userAssets'][item_num]['assetId'])
+            if roli_data['items'][item_id][3] > 0:
+                value = roli_data["items"][item_id][3]
+            trade_data[side]['items'][f'item{item_num+1}']['roliValue'] = value
+        
+        trade_data[side]['robux'] = offer['robux']
+    
+    return trade_data
