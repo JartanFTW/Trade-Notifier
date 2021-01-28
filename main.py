@@ -23,6 +23,7 @@ from user import User
 from utilities import load_config, setup_logging, print_timestamp
 
 version = "v0.3.0-alpha"
+os.system("title " + f"Horizon {version}")
 
 logger = logging.getLogger("horizon.main")
 
