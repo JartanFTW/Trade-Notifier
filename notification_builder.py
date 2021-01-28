@@ -143,15 +143,35 @@ class NotificationBuilder(Exception):
         return resized_image
     
     def format_text(self, text: str, trade_data: dict): #TODO ADD UNVALUED RAPS TO VALUE
-        """Formats different keywords for text stitching"""
+        """Formats different keywords for text stitching
+        """
+        item_filter = ["item2", "item3", "item4"]
+        var_filter = ["id", "serialNumber", "assetId", "name", "originalPrice", "assetStock"]
+        for side in ("give", "take"):
+            for item in trade_data[side]['items']:
+                for key, value in trade_data[side]['items'][item].items(): # Changing NoneTypes to empty strings so they show up as nothing on notification.
+                    if value == None:
+                        trade_data[side]['items'][item][key] = ""
+                if trade_data['addUnvaluedToValue']:
+                    if trade_data[side]['items'][item]['roliValue'] == 0:
+                        trade_data[side]['items'][item]['roliValue'] = trade_data[side]['items'][item]['recentAveragePrice']
+            for x in item_filter: # Adding all items to dict so .format below doesn't scream IndexError. Can't just try/except it because then it won't work. If anyone has a better solution be my guest.
+                if x not in trade_data[side]['items']:
+                    trade_data[side]['items'][x] = {}
+            for item in trade_data[side]['items'].values(): # Making sure all used indexes are in items for above reason.
+                for x in var_filter:
+                    if x not in item:
+                        item[x] = ""
+                for x in ["recentAveragePrice", "roliValue"]: # Same as above, but setting to 0 so total calculations don't scream.
+                    if x not in item:
+                        item[x] = 0
+
+
         give_rap = sum(int(item['recentAveragePrice']) for item in trade_data['give']['items'].values())
         take_rap = sum(int(item['recentAveragePrice']) for item in trade_data['take']['items'].values())
         
         give_roli_value = sum(int(item['roliValue']) for item in trade_data['give']['items'].values())
         take_roli_value = sum(int(item['roliValue']) for item in trade_data['take']['items'].values())
-        if trade_data['addUnvaluedToValue']:
-            give_roli_value += sum(item['recentAveragePrice'] for item in trade_data['give']['items'].values() if item['roliValue'] == 0)
-            take_roli_value += sum(item['recentAveragePrice'] for item in trade_data['take']['items'].values() if item['roliValue'] == 0)
         
         give_robux = str(trade_data['give']['robux'])
         take_robux = str(trade_data['take']['robux'])
@@ -164,24 +184,6 @@ class NotificationBuilder(Exception):
         take_user_display_name = trade_data['take']['user']['displayName']
 
         trade_status = "Inbound" if trade_data['status'] == "Open" else trade_data['status']
-
-        item_filter = ["item2", "item3", "item4"]
-        var_filter = ["id", "serialNumber", "assetId", "name", "originalPrice", "assetStock"]
-        for side in ("give", "take"):
-            for item in trade_data[side]['items']:
-                for key, value in trade_data[side]['items'][item].items(): # Changing NoneTypes to empty strings so they show up as nothing on notification.
-                    if value == None:
-                        trade_data[side]['items'][item][key] = ""
-            for x in item_filter: # Adding all items to dict so .format below doesn't scream IndexError. Can't just try/except it because then it won't work. If anyone has a better solution be my guest.
-                if x not in trade_data[side]['items']:
-                    trade_data[side]['items'][x] = {}
-            for item in trade_data[side]['items'].values(): # Making sure all used indexes are in items for above reason.
-                for x in var_filter:
-                    if x not in item:
-                        item[x] = ""
-                for x in ["recentAveragePrice", "roliValue"]: # Same as above, but setting to 0 so total calculations don't scream.
-                    if x not in item:
-                        item[x] = 0
     
 
         text = text.format(
@@ -206,14 +208,14 @@ class NotificationBuilder(Exception):
             take_item2_id = str(trade_data['take']['items']['item2']['id']),
             take_item3_id = str(trade_data['take']['items']['item3']['id']),
             take_item4_id = str(trade_data['take']['items']['item4']['id']),
-            give_item1_serialNumber = str(trade_data['give']['items']['item1']['serialNumber']),
-            give_item2_serialNumber = str(trade_data['give']['items']['item2']['serialNumber']),
-            give_item3_serialNumber = str(trade_data['give']['items']['item3']['serialNumber']),
-            give_item4_serialNumber = str(trade_data['give']['items']['item4']['serialNumber']),
-            take_item1_serialNumber = str(trade_data['take']['items']['item1']['serialNumber']),
-            take_item2_serialNumber = str(trade_data['take']['items']['item2']['serialNumber']),
-            take_item3_serialNumber = str(trade_data['take']['items']['item3']['serialNumber']),
-            take_item4_serialNumber = str(trade_data['take']['items']['item4']['serialNumber']),
+            give_item1_serial_number = str(trade_data['give']['items']['item1']['serialNumber']),
+            give_item2_serial_number = str(trade_data['give']['items']['item2']['serialNumber']),
+            give_item3_serial_number = str(trade_data['give']['items']['item3']['serialNumber']),
+            give_item4_serial_number = str(trade_data['give']['items']['item4']['serialNumber']),
+            take_item1_serial_number = str(trade_data['take']['items']['item1']['serialNumber']),
+            take_item2_serial_number = str(trade_data['take']['items']['item2']['serialNumber']),
+            take_item3_serial_number = str(trade_data['take']['items']['item3']['serialNumber']),
+            take_item4_serial_number = str(trade_data['take']['items']['item4']['serialNumber']),
             give_item1_asset_id = str(trade_data['give']['items']['item1']['assetId']),
             give_item2_asset_id = str(trade_data['give']['items']['item2']['assetId']),
             give_item3_asset_id = str(trade_data['give']['items']['item3']['assetId']),
