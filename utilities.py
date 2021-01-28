@@ -134,7 +134,7 @@ async def get_pillow_object_from_url(url: str):
 
 
 
-async def send_trade_webhook(webhook_url: str, attachments: list = None): # TODO Rewrite properly utilizing **kwargs for custom request stuffs.
+async def send_trade_webhook(webhook_url: str, content: str = "", attachments: list = None): # TODO Rewrite properly utilizing **kwargs for custom request stuffs.
 
     files = {}
     for i in range(len(attachments)):
@@ -144,7 +144,7 @@ async def send_trade_webhook(webhook_url: str, attachments: list = None): # TODO
 
         logger.info("Sending trade webhook")
 
-        request = await client.post(webhook_url, files = files)
+        request = await client.post(webhook_url, data={"content": content}, files = files)
     
     if request.status_code == 200:
 
@@ -213,11 +213,13 @@ def load_config(path: str):
     config['completed']['enabled'] = True if str(parser['COMPLETED']['enabled']).upper() == "TRUE" else False
     config['completed']['update_interval'] = int(parser['COMPLETED']['update_interval'])
     config['completed']['theme_name'] = parser['COMPLETED']['theme_name']
+    config['completed']['webhook_content'] = parser['COMPLETED']['webhook_content']
 
     config['inbound'] = {}
     config['inbound']['enabled'] = True if str(parser['INBOUND']['enabled']).upper() == "TRUE" else False
     config['inbound']['update_interval'] = int(parser['INBOUND']['update_interval'])
     config['inbound']['theme_name'] = parser['INBOUND']['theme_name']
+    config['inbound']['webhook_content'] = parser['INBOUND']['webhook_content']
 
     config['logging_level'] = int(parser['DEBUG']['logging_level'])
     config['testing'] = True if str(parser['DEBUG']['testing']).upper() == "TRUE" else False

@@ -10,7 +10,7 @@ from utilities import print_timestamp, get_roli_data, get_asset_image_url, get_p
 class TradeWorker():
 
     @classmethod
-    async def create(cls, user: User, webhook_url: str, update_interval: int, theme_name: str, trade_type: str = "Completed", add_unvalued_to_value: bool = True, testing: bool = False):
+    async def create(cls, user: User, webhook_url: str, update_interval: int, theme_name: str, trade_type: str = "Completed", add_unvalued_to_value: bool = True, testing: bool = False, webhook_content: str = ""):
         
         self = TradeWorker()
 
@@ -20,6 +20,7 @@ class TradeWorker():
         self.theme_name = theme_name
         self.trade_type = trade_type
         self.add_unvalued_to_value = add_unvalued_to_value
+        self.webhook_content = webhook_content
 
         self.old_completed_trades = []
         self.roli_data = None
@@ -77,12 +78,12 @@ class TradeWorker():
 
                     try:
 
-                        await send_trade_webhook(self.webhook_url, attachments = [("trade.png", image_bytes)])
+                        await send_trade_webhook(self.webhook_url, content=self.webhook_content, attachments=[("trade.png", image_bytes)])
 
                         print_timestamp(f"Sent {self.trade_type} trade webhook: {trade['id']}")
 
                     except UnknownResponse as e:
 
                         print_timestamp(f"Unable to send {self.trade_type} trade webhook: {trade['id']} got response {e.response_code}")
-                        
+
             await asyncio.sleep(self.update_interval)
