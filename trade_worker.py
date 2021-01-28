@@ -25,13 +25,13 @@ class TradeWorker():
         self.old_completed_trades = []
         self.roli_data = None
 
-        complete_trade_info = await self.user.get_trade_status_info(tradeStatusType=self.trade_type)
+        complete_trade_info = await self.user.get_trade_status_info(tradeStatusType=self.trade_type, limit=25)
         for trade in complete_trade_info["data"][::-1]: # -1 to put old trades first in list, which are first to be removed
             self.old_completed_trades.append(trade["id"])
 
         if testing == True:
             print_timestamp(f"Testing mode enabled")
-            del self.old_completed_trades[0]
+            del self.old_completed_trades[-1]
         
         return self
 
@@ -48,8 +48,8 @@ class TradeWorker():
                         print_timestamp(f"Couldn't grab Rolimons data. Connection timed out.")
 
                     self.old_completed_trades.append(trade["id"])
-                    if len(self.old_completed_trades) > 10:
-                        del self.old_completed_trades[0:-10]
+                    if len(self.old_completed_trades) > 25:
+                        del self.old_completed_trades[0:-25]
 
                     print_timestamp(f"Detected new {self.trade_type} trade: {trade['id']}")
 
