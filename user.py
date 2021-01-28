@@ -14,11 +14,10 @@
 
 
 
-import httpx
 import asyncio
 import logging
+import httpx
 from utilities import UnknownResponse, InvalidCookie
-import sys
 
 logger = logging.getLogger("horizon.user")
 
@@ -126,7 +125,7 @@ class User():
 
 
 
-    async def get_trade_status_data(self, tradeStatusType: str = "Inbound", limit: int = 10, sortOrder: str = "Asc"):
+    async def get_trade_status_info(self, tradeStatusType: str = "Inbound", limit: int = 10, sortOrder: str = "Asc"):
 
         attempt = 0
 
@@ -170,7 +169,7 @@ class User():
 
 
 
-    async def get_trade_data(self, trade_id: [str, int]):
+    async def get_trade_info(self, trade_id: int):
 
         attempt = 0
 

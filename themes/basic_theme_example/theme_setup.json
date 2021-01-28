@@ -1,61 +1,125 @@
 {
 
-    "item_image_size": "110x110",
+    "background_image": "background.png",
 
-    "give_items": {
-        "item_1_center_position": [135, 145],
-        "item_2_center_position": [285, 145],
-        "item_3_center_position": [435, 145],
-        "item_4_center_position": [585, 145]
+    "give": {
+
+        "item1": {
+            "size": [110, 110],
+            "position": [135, 145],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item2": {
+            "size": [110, 110],
+            "position": [285, 145],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item3": {
+            "size": [110, 110],
+            "position": [435, 145],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item4": {
+            "size": [110, 110],
+            "position": [585, 145],
+            "center_on_position": true,
+            "transparency": true
+        }
     },
 
-    "take_items": {
-        "item_1_center_position": [135, 405],
-        "item_2_center_position": [285, 405],
-        "item_3_center_position": [435, 405],
-        "item_4_center_position": [585, 405]
+    "take": {
+
+        "item1": {
+            "size": [110, 110],
+            "position": [135, 405],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item2": {
+            "size": [110, 110],
+            "position": [285, 405],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item3": {
+            "size": [110, 110],
+            "position": [435, 405],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item4": {
+            "size": [110, 110],
+            "position": [585, 405],
+            "center_on_position": true,
+            "transparency": true
+        }
     },
 
     "drawn_text": {
 
         "rap_sent": {
             "text": "Sent RAP: {give_rap}",
-            "font_file_name": "Rubik-Medium.ttf",
-            "font_size": 15,
-            "top_left_position": [650, 85],
-            "rgb": [0, 128, 0]
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 25,
+            "position": [650, 85],
+            "center_on_position": false,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
         },
+
         "value_sent": {
             "text": "Sent Value: {give_roli_value}",
-            "font_file_name": "Rubik-Medium.ttf",
-            "font_size": 15,
-            "top_left_position": [650, 130],
-            "rgb": [0, 128, 255]
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 25,
+            "position": [650, 130],
+            "center_on_position": false,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
         },
+
         "rap_received": {
             "text": "Sent RAP: {take_rap}",
-            "font_file_name": "Rubik-Medium.ttf",
-            "font_size": 15,
-            "top_left_position": [650, 345],
-            "rgb": [0, 128, 0]
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 25,
+            "position": [650, 345],
+            "center_on_position": false,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
         },
+
         "value_received": {
             "text": "Sent Value: {take_roli_value}",
-            "font_file_name": "Rubik-Medium.ttf",
-            "font_size": 15,
-            "top_left_position": [650, 400],
-            "rgb": [0, 128, 255]
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 25,
+            "position": [650, 400],
+            "center_on_position": false,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
         }
-    
+
     },
 
     "drawn_images": {
 
-        "robux_symbol": {
+        "drawing_name": {
             "file_name": "robux.png",
-            "top_left_position": [250, 250],
+            "size": [220, 220],
+            "position": [250, 250],
+            "center_on_position": true,
             "transparency": true
         }
-
     }
 }

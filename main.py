@@ -13,178 +13,45 @@
 #    limitations under the License.
 
 
-
-import httpx
-import json
-from configparser import ConfigParser
+import asyncio
 import logging
 import os
-import asyncio
 import traceback
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
-import sys
-from image_builder import ImageBuilder
-from utilities import *
+import httpx
+from trade_worker import TradeWorker
 from user import User
+from utilities import load_config, setup_logging, print_timestamp
 
-version = "v0.2.1-alpha"
+version = "v0.3.0-alpha"
+os.system("title " + f"Horizon {version}")
 
 logger = logging.getLogger("horizon.main")
-
-class Worker():
-
-    @classmethod
-    async def create(cls, user: User, webhook_url: str, rolimons_update_interval: int, completed_trade_update_interval: int, theme_name: str):
-        
-        self = Worker()
-
-        self.user = user
-        self.webhook_url = webhook_url
-        self.rolimons_update_interval = rolimons_update_interval
-        self.completed_trade_update_interval = completed_trade_update_interval
-        self.theme_name = theme_name
-
-        self.old_trades = []
-        self.roli_values = None
-
-        trade_datas = await self.user.get_trade_status_data(tradeStatusType = "Completed")
-        for trade in trade_datas["data"][::-1]:
-            self.old_trades.append(trade["id"])
-        
-        return self
-    
-
-
-    async def rolimons_loop(self):
-
-        while True:
-
-            self.roli_values = await get_roli_values()
-
-            await asyncio.sleep(self.rolimons_update_interval)
-    
-
-
-    async def completed_trade_loop(self):
-        while True: # Making sure roli values are initialized
-            if isinstance(self.roli_values, dict):
-                break
-            self.roli_values = await get_roli_values()
-
-        while True:
-            
-            print_timestamp("Checking confirmed trades")
-
-            trades_data = await self.user.get_trade_status_data(tradeStatusType = "Completed")
-
-            for trade in trades_data["data"][::-1]:
-
-                if trade["id"] not in self.old_trades:
-
-                    self.old_trades.append(trade["id"])
-
-                    if len(self.old_trades) > 10:
-                        del self.old_trades[0:-10]
-
-                    print_timestamp(f"Found new confirmed trade: {trade['id']}")
-
-                    trade_data = await self.user.get_trade_data(trade["id"])
-
-                    themes_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "themes")
-
-                    theme_folder_path = os.path.join(themes_folder_path, self.theme_name)
-
-                    # Creating give and take item lists
-                    give_items = []
-                    take_items = []
-                    for offer in trade_data["offers"]:
-
-                        for item in offer["userAssets"]:
-
-                            item_id = item["assetId"]
-
-                            rap = self.roli_values["items"][str(item["assetId"])][2]
-
-                            value = 0
-                            if self.roli_values["items"][str(item["assetId"])][3] > 0:
-                                value = self.roli_values["items"][str(item["assetId"])][3]
-                            
-                            if offer["user"]["id"] == self.user.id:
-
-                                give_items.append({"id": item_id, "rap": rap, "roli_value": value})
-                            
-                            else:
-
-                                take_items.append({"id": item_id, "rap": rap, "roli_value": value})
-
-                    # Loading image size
-                    with open(os.path.join(theme_folder_path, "theme_setup.json")) as settings:
-                        item_image_size = json.load(settings)["item_image_size"]
-
-
-                    # Getting item images
-                    item_ids = [str(item["id"]) for item in give_items + take_items]
-
-                    item_image_urls = await get_asset_image_url(item_ids = item_ids, size = item_image_size)
-
-                    item_images = {}
-                    for item in item_image_urls["data"]:
-                        item_images[str(item["targetId"])] = await get_pillow_object_from_url(item["imageUrl"])
-                    
-
-                    # Generating trade data
-                    trade_info = {}
-
-                    trade_info["give_username"] = str([offer["user"]["displayName"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
-
-                    trade_info["take_username"] = str([offer["user"]["displayName"] for offer in trade_data["offers"] if offer["user"]["id"] != self.user.id][0])
-
-                    trade_info["give_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] == self.user.id][0])
-
-                    trade_info["take_user_id"] = int([offer["user"]["id"] for offer in trade_data["offers"] if offer["user"]["id"] != self.user.id][0])
-                    
-                    
-                    # Building image
-                    builder = ImageBuilder()
-                    trade_image = builder.build_image(theme_folder_path, give_items, take_items, item_images, trade_info)
-
-
-                    # Sending webhook
-                    try:
-
-                        await send_trade_webhook(self.webhook_url, attachments = [("trade.png", trade_image)])
-
-                        print_timestamp(f"Sent confirmed trade webhook: {trade['id']}")
-
-                    except UnknownResponse as e:
-
-                        print_timestamp(f"Unable to send trade webhook: {trade['id']} got response {e.response_code}")
-            
-            await asyncio.sleep(self.completed_trade_update_interval)
-
 
 
 async def main():
 
     config = load_config(os.path.join(os.path.dirname(os.path.abspath(__file__)), "horizon_config.ini"))
 
-    setup_logging(os.path.dirname(os.path.abspath(__file__)), level = config["logging_level"])
+    setup_logging(os.path.dirname(os.path.abspath(__file__)), level = config['logging_level'])
 
     print_timestamp(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
     logging.info(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
 
-    user = await User.create(config["cookie"])
-
-    worker = await Worker.create(user, config["webhook"], config["rolimons_update_interval"], config["completed_trade_update_interval"], config["theme_name"])
-
     tasks = []
+    user = await User.create(config["cookie"])
+    if config['completed']['enabled']:
+        worker = await TradeWorker.create(user, config['webhook'], config['completed']['update_interval'], config['completed']['theme_name'], trade_type="Completed", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], webhook_content=config['completed']['webhook_content'])
+        tasks.append(asyncio.create_task(worker.check_trade_loop()))
+    if config['inbound']['enabled']:
+        worker = await TradeWorker.create(user, config['webhook'], config['inbound']['update_interval'], config['inbound']['theme_name'], trade_type="Inbound", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], webhook_content=config['inbound']['webhook_content'])
+        tasks.append(asyncio.create_task(worker.check_trade_loop()))
 
-    tasks.append(asyncio.create_task(worker.rolimons_loop()))
-    tasks.append(asyncio.create_task(worker.completed_trade_loop()))
-
-    await asyncio.wait(tasks)
-
+    if tasks:
+        await asyncio.wait(tasks)
+    else:
+        print_timestamp("Looks like you don't have any trade types enabled in the config! There is nothing for me to do :(")
+    await user.client.aclose()
+    return
 
 
 if __name__ == "__main__":
