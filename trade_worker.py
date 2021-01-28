@@ -31,7 +31,7 @@ class TradeWorker():
 
         if testing == True:
             print_timestamp(f"Testing mode enabled")
-            del self.old_completed_trades[0]
+            del self.old_completed_trades[-1]
         
         return self
 
