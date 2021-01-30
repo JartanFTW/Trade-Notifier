@@ -19,7 +19,6 @@ import os
 import json
 from collections import OrderedDict
 from PIL import Image, ImageDraw, ImageFont
-import traceback
 
 class NotificationBuilder(Exception):
     
@@ -67,10 +66,7 @@ class NotificationBuilder(Exception):
                 for text_details in details.values():
                     background = notification
                     position = tuple(text_details['position'])
-                    try:
-                        text = self.format_text(text_details['text'], trade_data=trade_data)
-                    except Exception:
-                        traceback.print_exc()
+                    text = self.format_text(text_details['text'], trade_data=trade_data)
                     rgba = tuple(text_details['rgba'])
                     font = self.load_font(os.path.join(self.theme_folder, text_details['font_file']), font_size=text_details['font_size'])
                     
