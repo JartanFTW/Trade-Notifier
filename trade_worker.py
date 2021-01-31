@@ -46,14 +46,20 @@ class TradeWorker():
     async def check_trade_loop(self):
         while True:
             print_timestamp(f"Checking {self.trade_type} trades")
-
-            trades_info = await self.user.get_trade_status_info(tradeStatusType = self.trade_type)
+            try:
+                trades_info = await self.user.get_trade_status_info(tradeStatusType = self.trade_type)
+            except httpx.ConnectTimeout:
+                logging.error(f"Connection timed out while trying to grab trade status info: {self.trade_type}: {traceback.format_exc()}")
+                print_timestamp(f"Connection timed out while trying to grab trade status info: {self.trade_type}")
+                await asyncio.sleep(self.update_interval)
+                continue
             for trade in trades_info['data'][::-1]:
                 if trade['id'] not in self.old_trades:
                     try:
                         self.roli_data = await get_roli_data()
                     except httpx.ReadTimeout:
-                        print_timestamp(f"Couldn't grab Rolimons data. Connection timed out.")
+                        logging.error(f"Couldn't grab Rolimons data. Read timed out: {traceback.format_exc()}")
+                        print_timestamp(f"Couldn't grab updated Rolimons data. Read timed out.")
 
                     self.old_trades.append(trade["id"])
                     if len(self.old_trades) > 25:
