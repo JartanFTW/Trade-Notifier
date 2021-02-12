@@ -163,7 +163,7 @@ class User():
                 
                 logger.error(f"Unable to grab user trade status data: {request.status_code}")
 
-                await self.update_csrf
+                await self.update_csrf()
 
                 continue
 
@@ -207,6 +207,6 @@ class User():
                 
                 logger.error(f"Unable to grab user trade data: {request.status_code}")
 
-                await self.update_csrf
+                await self.update_csrf()
 
                 continue
