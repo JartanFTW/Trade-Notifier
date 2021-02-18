@@ -222,6 +222,13 @@ def load_config(path: str):
     config['inbound']['theme_name'] = parser['INBOUND']['theme_name']
     config['inbound']['webhook_content'] = parser['INBOUND']['webhook_content']
 
+    config['outbound'] = {}
+    config['outbound']['enabled'] = True if str(parser['OUTBOUND']['enabled']).upper() == "TRUE" else False
+    config['outbound']['webhook'] = str(parser['OUTBOUND']['webhook']).strip()
+    config['outbound']['update_interval'] = int(parser['OUTBOUND']['update_interval'])
+    config['outbound']['theme_name'] = parser['OUTBOUND']['theme_name']
+    config['outbound']['webhook_content'] = parser['OUTBOUND']['webhook_content']
+
     config['logging_level'] = int(parser['DEBUG']['logging_level'])
     config['testing'] = True if str(parser['DEBUG']['testing']).upper() == "TRUE" else False
     
@@ -229,13 +236,13 @@ def load_config(path: str):
 
 
 
-def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_unvalued_to_value: bool):
+def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_unvalued_to_value: bool, trade_status: str):
     """Inputs roblox trade data, rolimons data, 'self' user_id to mark one of the trade info people as user, and unvalued to value
     Outputs completely generated trade_data WITHOUT pillow images. After adding pillow images, ready to pass into NotificationBuilder
     """
     trade_data = {}
     trade_data['addUnvaluedToValue'] = add_unvalued_to_value
-    trade_data['status'] = trade_info['status']
+    trade_data['status'] = trade_status.lower().capitalize()
     trade_data['give'] = {}
     trade_data['take'] = {}
 
@@ -305,7 +312,7 @@ def format_text(text: str, trade_data: dict):
     give_user_display_name = trade_data['give']['user']['displayName']
     take_user_display_name = trade_data['take']['user']['displayName']
 
-    trade_status = "Inbound" if trade_data['status'] == "Open" else trade_data['status']
+    trade_status = trade_data['status']
 
 
     text = text.format(
