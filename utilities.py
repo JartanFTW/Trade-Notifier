@@ -205,18 +205,19 @@ def load_config(path: str):
 
     config = {}
 
-    config['webhook'] = str(parser['GENERAL']['webhook']).strip()
     config['cookie'] = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser['GENERAL']['cookie']).split("_")[-1]
     config['add_unvalued_to_value'] = True if str(parser['GENERAL']['add_unvalued_to_value']).upper() == "TRUE" else False
 
     config['completed'] = {}
     config['completed']['enabled'] = True if str(parser['COMPLETED']['enabled']).upper() == "TRUE" else False
+    config['completed']['webhook'] = str(parser['COMPLETED']['webhook']).strip()
     config['completed']['update_interval'] = int(parser['COMPLETED']['update_interval'])
     config['completed']['theme_name'] = parser['COMPLETED']['theme_name']
     config['completed']['webhook_content'] = parser['COMPLETED']['webhook_content']
 
     config['inbound'] = {}
     config['inbound']['enabled'] = True if str(parser['INBOUND']['enabled']).upper() == "TRUE" else False
+    config['inbound']['webhook'] = str(parser['INBOUND']['webhook']).strip()
     config['inbound']['update_interval'] = int(parser['INBOUND']['update_interval'])
     config['inbound']['theme_name'] = parser['INBOUND']['theme_name']
     config['inbound']['webhook_content'] = parser['INBOUND']['webhook_content']
