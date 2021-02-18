@@ -68,7 +68,7 @@ class TradeWorker():
                     print_timestamp(f"Detected new {self.trade_type} trade: {trade['id']}")
 
                     trade_info = await self.user.get_trade_info(trade["id"])
-                    trade_data = construct_trade_data(trade_info, self.roli_data, self.user.id, add_unvalued_to_value=self.add_unvalued_to_value)
+                    trade_data = construct_trade_data(trade_info, self.roli_data, self.user.id, self.add_unvalued_to_value, self.trade_type)
 
                     asset_ids = []
                     for offer in (trade_data['give'], trade_data['take']):
