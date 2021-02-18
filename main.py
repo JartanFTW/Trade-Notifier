@@ -40,7 +40,7 @@ async def main():
     setup_logging(main_folder_path, level = config['logging_level'])
 
     print_timestamp(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
-    logging.info(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+    logging.log(49, f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
 
     tasks = []
     user = await User.create(config["cookie"])
