@@ -5,14 +5,14 @@ import traceback
 import httpx
 from user import User
 from notification_builder import NotificationBuilder
-from utilities import print_timestamp, get_roli_data, get_asset_image_url, get_pillow_object_from_url, construct_trade_data, send_trade_webhook, UnknownResponse
+from utilities import print_timestamp, get_roli_data, get_asset_image_url, get_pillow_object_from_url, construct_trade_data, send_trade_webhook, UnknownResponse, format_text
 
 logger = logging.getLogger("horizon.main")
 
 class TradeWorker():
 
     @classmethod
-    async def create(cls, main_folder_path: str, user: User, webhook_url: str, update_interval: int, theme_name: str, trade_type: str = "Completed", add_unvalued_to_value: bool = True, testing: bool = False, webhook_content: str = ""):
+    async def create(cls, main_folder_path: str, user: User, webhook_url: str, update_interval: int, theme_name: str, trade_type: str = "Completed", add_unvalued_to_value: bool = True, testing: bool = False, double_check: bool = False, webhook_content: str = ""):
         
         self = TradeWorker()
 
@@ -23,6 +23,7 @@ class TradeWorker():
         self.theme_name = theme_name
         self.trade_type = trade_type
         self.add_unvalued_to_value = add_unvalued_to_value
+        self.double_check = double_check
         self.webhook_content = webhook_content
 
         self.old_trades = []
@@ -48,13 +49,24 @@ class TradeWorker():
             print_timestamp(f"Checking {self.trade_type} trades")
             try:
                 trades_info = await self.user.get_trade_status_info(tradeStatusType = self.trade_type)
-            except httpx.ConnectTimeout:
-                logging.error(f"Connection timed out while trying to grab trade status info: {self.trade_type}: {traceback.format_exc()}")
-                print_timestamp(f"Connection timed out while trying to grab trade status info: {self.trade_type}")
+            except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
+                logging.error(f"Connect/Read timed out while trying to grab trade status info: {self.trade_type}: {traceback.format_exc()}")
+                print_timestamp(f"Connect/Read timed out while trying to grab trade status info: {self.trade_type}")
                 await asyncio.sleep(self.update_interval)
                 continue
             for trade in trades_info['data'][::-1]:
                 if trade['id'] not in self.old_trades:
+
+                    print_timestamp(f"Detected new {self.trade_type} trade: {trade['id']}")
+
+                    if self.double_check:
+                        print_timestamp(f"Double-checking new {self.trade_type} trade: {trade['id']}")
+                        await asyncio.sleep(10)
+                        trades_info = await self.user.get_trade_status_info(tradeStatusType = self.trade_type)
+                        if trade['id'] not in [trade['id'] for trade in trades_info['data'][::-1]]:
+                            print_timestamp(f"New {self.trade_type} trade {trade['id']} detected as fake.")
+                            continue
+
                     try:
                         self.roli_data = await get_roli_data()
                     except httpx.ReadTimeout:
@@ -65,10 +77,8 @@ class TradeWorker():
                     if len(self.old_trades) > 25:
                         del self.old_trades[0:-25]
 
-                    print_timestamp(f"Detected new {self.trade_type} trade: {trade['id']}")
-
                     trade_info = await self.user.get_trade_info(trade["id"])
-                    trade_data = construct_trade_data(trade_info, self.roli_data, self.user.id, add_unvalued_to_value=self.add_unvalued_to_value)
+                    trade_data = construct_trade_data(trade_info, self.roli_data, self.user.id, self.add_unvalued_to_value, self.trade_type)
 
                     asset_ids = []
                     for offer in (trade_data['give'], trade_data['take']):
@@ -95,9 +105,11 @@ class TradeWorker():
                         print_timestamp(f"An unknown error occurred while creating a notification image: {traceback.format_exc()}")
                         continue
 
+                    content = format_text(self.webhook_content, trade_data)
+
                     try:
 
-                        await send_trade_webhook(self.webhook_url, content=self.webhook_content, attachments=[("trade.png", image_bytes)])
+                        await send_trade_webhook(self.webhook_url, content=content, attachments=[("trade.png", image_bytes)])
 
                         logging.info(f"Sent {self.trade_type} trade webhook: {trade['id']}")
                         print_timestamp(f"Sent {self.trade_type} trade webhook: {trade['id']}")

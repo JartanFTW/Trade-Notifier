@@ -205,36 +205,45 @@ def load_config(path: str):
 
     config = {}
 
-    config['webhook'] = str(parser['GENERAL']['webhook']).strip()
     config['cookie'] = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser['GENERAL']['cookie']).split("_")[-1]
     config['add_unvalued_to_value'] = True if str(parser['GENERAL']['add_unvalued_to_value']).upper() == "TRUE" else False
 
     config['completed'] = {}
     config['completed']['enabled'] = True if str(parser['COMPLETED']['enabled']).upper() == "TRUE" else False
+    config['completed']['webhook'] = str(parser['COMPLETED']['webhook']).strip()
     config['completed']['update_interval'] = int(parser['COMPLETED']['update_interval'])
     config['completed']['theme_name'] = parser['COMPLETED']['theme_name']
     config['completed']['webhook_content'] = parser['COMPLETED']['webhook_content']
 
     config['inbound'] = {}
     config['inbound']['enabled'] = True if str(parser['INBOUND']['enabled']).upper() == "TRUE" else False
+    config['inbound']['webhook'] = str(parser['INBOUND']['webhook']).strip()
     config['inbound']['update_interval'] = int(parser['INBOUND']['update_interval'])
     config['inbound']['theme_name'] = parser['INBOUND']['theme_name']
     config['inbound']['webhook_content'] = parser['INBOUND']['webhook_content']
 
+    config['outbound'] = {}
+    config['outbound']['enabled'] = True if str(parser['OUTBOUND']['enabled']).upper() == "TRUE" else False
+    config['outbound']['webhook'] = str(parser['OUTBOUND']['webhook']).strip()
+    config['outbound']['update_interval'] = int(parser['OUTBOUND']['update_interval'])
+    config['outbound']['theme_name'] = parser['OUTBOUND']['theme_name']
+    config['outbound']['webhook_content'] = parser['OUTBOUND']['webhook_content']
+
     config['logging_level'] = int(parser['DEBUG']['logging_level'])
     config['testing'] = True if str(parser['DEBUG']['testing']).upper() == "TRUE" else False
+    config['double_check'] = True if str(parser['DEBUG']['double_check']).upper() == "TRUE" else False
     
     return config
 
 
 
-def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_unvalued_to_value: bool):
+def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_unvalued_to_value: bool, trade_status: str):
     """Inputs roblox trade data, rolimons data, 'self' user_id to mark one of the trade info people as user, and unvalued to value
     Outputs completely generated trade_data WITHOUT pillow images. After adding pillow images, ready to pass into NotificationBuilder
     """
     trade_data = {}
     trade_data['addUnvaluedToValue'] = add_unvalued_to_value
-    trade_data['status'] = trade_info['status']
+    trade_data['status'] = trade_status.lower().capitalize()
     trade_data['give'] = {}
     trade_data['take'] = {}
 
@@ -261,3 +270,149 @@ def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_un
         trade_data[side]['robux'] = offer['robux']
     
     return trade_data
+
+
+def format_text(text: str, trade_data: dict):
+    """Formats different keywords for text stitching
+    """
+    item_filter = ["item2", "item3", "item4"]
+    var_filter = ["id", "serialNumber", "assetId", "name", "originalPrice", "assetStock"]
+    for side in ("give", "take"):
+        for item in trade_data[side]['items']:
+            for key, value in trade_data[side]['items'][item].items(): # Changing NoneTypes to empty strings so they show up as nothing on notification.
+                if value == None:
+                    trade_data[side]['items'][item][key] = ""
+            if trade_data['addUnvaluedToValue']:
+                if trade_data[side]['items'][item]['roliValue'] == 0:
+                    trade_data[side]['items'][item]['roliValue'] = trade_data[side]['items'][item]['recentAveragePrice']
+        for x in item_filter: # Adding all items to dict so .format below doesn't scream IndexError. Can't just try/except it because then it won't work. If anyone has a better solution be my guest.
+            if x not in trade_data[side]['items']:
+                trade_data[side]['items'][x] = {}
+        for item in trade_data[side]['items'].values(): # Making sure all used indexes are in items for above reason.
+            for x in var_filter:
+                if x not in item:
+                    item[x] = ""
+            for x in ["recentAveragePrice", "roliValue"]: # Same as above, but setting to 0 so total calculations don't scream.
+                if x not in item:
+                    item[x] = 0
+
+
+    give_rap = sum(int(item['recentAveragePrice']) for item in trade_data['give']['items'].values())
+    take_rap = sum(int(item['recentAveragePrice']) for item in trade_data['take']['items'].values())
+    
+    give_roli_value = sum(int(item['roliValue']) for item in trade_data['give']['items'].values())
+    take_roli_value = sum(int(item['roliValue']) for item in trade_data['take']['items'].values())
+    
+    give_robux = str(trade_data['give']['robux'])
+    take_robux = str(trade_data['take']['robux'])
+    
+    give_user_id = str(trade_data['give']['user']['id'])
+    take_user_id = str(trade_data['take']['user']['id'])
+    give_user_name = trade_data['give']['user']['name']
+    take_user_name = trade_data['take']['user']['name']
+    give_user_display_name = trade_data['give']['user']['displayName']
+    take_user_display_name = trade_data['take']['user']['displayName']
+
+    trade_status = trade_data['status']
+
+
+    text = text.format(
+        give_rap = give_rap,
+        take_rap = take_rap,
+        give_roli_value = give_roli_value,
+        take_roli_value = take_roli_value,
+        give_robux = give_robux,
+        take_robux = take_robux,
+        give_user_id = give_user_id,
+        take_user_id = take_user_id,
+        give_user_name = give_user_name,
+        take_user_name = take_user_name,
+        give_user_display_name = give_user_display_name,
+        take_user_display_name = take_user_display_name,
+        trade_status = trade_status,
+        give_item1_id = str(trade_data['give']['items']['item1']['id']),
+        give_item2_id = str(trade_data['give']['items']['item2']['id']),
+        give_item3_id = str(trade_data['give']['items']['item3']['id']),
+        give_item4_id = str(trade_data['give']['items']['item4']['id']),
+        take_item1_id = str(trade_data['take']['items']['item1']['id']),
+        take_item2_id = str(trade_data['take']['items']['item2']['id']),
+        take_item3_id = str(trade_data['take']['items']['item3']['id']),
+        take_item4_id = str(trade_data['take']['items']['item4']['id']),
+        give_item1_serial_number = str(trade_data['give']['items']['item1']['serialNumber']),
+        give_item2_serial_number = str(trade_data['give']['items']['item2']['serialNumber']),
+        give_item3_serial_number = str(trade_data['give']['items']['item3']['serialNumber']),
+        give_item4_serial_number = str(trade_data['give']['items']['item4']['serialNumber']),
+        take_item1_serial_number = str(trade_data['take']['items']['item1']['serialNumber']),
+        take_item2_serial_number = str(trade_data['take']['items']['item2']['serialNumber']),
+        take_item3_serial_number = str(trade_data['take']['items']['item3']['serialNumber']),
+        take_item4_serial_number = str(trade_data['take']['items']['item4']['serialNumber']),
+        give_item1_asset_id = str(trade_data['give']['items']['item1']['assetId']),
+        give_item2_asset_id = str(trade_data['give']['items']['item2']['assetId']),
+        give_item3_asset_id = str(trade_data['give']['items']['item3']['assetId']),
+        give_item4_asset_id = str(trade_data['give']['items']['item4']['assetId']),
+        take_item1_asset_id = str(trade_data['take']['items']['item1']['assetId']),
+        take_item2_asset_id = str(trade_data['take']['items']['item2']['assetId']),
+        take_item3_asset_id = str(trade_data['take']['items']['item3']['assetId']),
+        take_item4_asset_id = str(trade_data['take']['items']['item4']['assetId']),
+        give_item1_name = trade_data['give']['items']['item1']['name'],
+        give_item2_name = trade_data['give']['items']['item2']['name'],
+        give_item3_name = trade_data['give']['items']['item3']['name'],
+        give_item4_name = trade_data['give']['items']['item4']['name'],
+        take_item1_name = trade_data['take']['items']['item1']['name'],
+        take_item2_name = trade_data['take']['items']['item2']['name'],
+        take_item3_name = trade_data['take']['items']['item3']['name'],
+        take_item4_name = trade_data['take']['items']['item4']['name'],
+        give_item1_recent_average_price = str(trade_data['give']['items']['item1']['recentAveragePrice']),
+        give_item2_recent_average_price = str(trade_data['give']['items']['item2']['recentAveragePrice']),
+        give_item3_recent_average_price = str(trade_data['give']['items']['item3']['recentAveragePrice']),
+        give_item4_recent_average_price = str(trade_data['give']['items']['item4']['recentAveragePrice']),
+        take_item1_recent_average_price = str(trade_data['take']['items']['item1']['recentAveragePrice']),
+        take_item2_recent_average_price = str(trade_data['take']['items']['item2']['recentAveragePrice']),
+        take_item3_recent_average_price = str(trade_data['take']['items']['item3']['recentAveragePrice']),
+        take_item4_recent_average_price = str(trade_data['take']['items']['item4']['recentAveragePrice']),
+        give_item1_original_price = str(trade_data['give']['items']['item1']['originalPrice']),
+        give_item2_original_price = str(trade_data['give']['items']['item2']['originalPrice']),
+        give_item3_original_price = str(trade_data['give']['items']['item3']['originalPrice']),
+        give_item4_original_price = str(trade_data['give']['items']['item4']['originalPrice']),
+        take_item1_original_price = str(trade_data['take']['items']['item1']['originalPrice']),
+        take_item2_original_price = str(trade_data['take']['items']['item2']['originalPrice']),
+        take_item3_original_price = str(trade_data['take']['items']['item3']['originalPrice']),
+        take_item4_original_price = str(trade_data['take']['items']['item4']['originalPrice']),
+        give_item1_asset_stock = str(trade_data['give']['items']['item1']['assetStock']),
+        give_item2_asset_stock = str(trade_data['give']['items']['item2']['assetStock']),
+        give_item3_asset_stock = str(trade_data['give']['items']['item3']['assetStock']),
+        give_item4_asset_stock = str(trade_data['give']['items']['item4']['assetStock']),
+        take_item1_asset_stock = str(trade_data['take']['items']['item1']['assetStock']),
+        take_item2_asset_stock = str(trade_data['take']['items']['item2']['assetStock']),
+        take_item3_asset_stock = str(trade_data['take']['items']['item3']['assetStock']),
+        take_item4_asset_stock = str(trade_data['take']['items']['item4']['assetStock']),
+        give_item1_roli_value = str(trade_data['give']['items']['item1']['roliValue']),
+        give_item2_roli_value = str(trade_data['give']['items']['item2']['roliValue']),
+        give_item3_roli_value = str(trade_data['give']['items']['item3']['roliValue']),
+        give_item4_roli_value = str(trade_data['give']['items']['item4']['roliValue']),
+        take_item1_roli_value = str(trade_data['take']['items']['item1']['roliValue']),
+        take_item2_roli_value = str(trade_data['take']['items']['item2']['roliValue']),
+        take_item3_roli_value = str(trade_data['take']['items']['item3']['roliValue']),
+        take_item4_roli_value = str(trade_data['take']['items']['item4']['roliValue'])
+        )
+
+    return text
+
+async def check_for_update(current_version: str):
+    """ Checks if provided current_version variable matches that of tag_name on the API. Returns True if there is an update, False if there is not.
+    """
+
+    async with httpx.AsyncClient() as client:
+        logger.info("Checking for Horizon update")
+        request = await client.get("https://api.github.com/repos/JartanFTW/Trade-Notifier/releases/latest")
+
+    if request.status_code == 200:
+        if current_version != request.json()['tag_name']:
+            return True
+        else:
+            return False
+
+    else:
+        logger.error("Failed to check for new update")
+        print_timestamp("Failed to check for new update")
+        raise UnknownResponse(request.response_code, request.url, response_text=request.text)
