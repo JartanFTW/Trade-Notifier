@@ -396,3 +396,22 @@ def format_text(text: str, trade_data: dict):
         )
 
     return text
+
+async def check_for_update(current_version: str):
+    """ Checks if provided current_version variable matches that of tag_name on the API. Returns True if there is an update, False if there is not.
+    """
+
+    async with httpx.AsyncClient() as client:
+        logger.info("Checking for Horizon update")
+        request = await client.get("https://api.github.com/repos/JartanFTW/Trade-Notifier/releases/latest")
+
+    if request.status_code == 200:
+        if current_version != request.json()['tag_name']:
+            return True
+        else:
+            return False
+
+    else:
+        logger.error("Failed to check for new update")
+        print_timestamp("Failed to check for new update")
+        raise UnknownResponse(request.response_code, request.url, response_text=request.text)
