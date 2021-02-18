@@ -5,7 +5,7 @@ import traceback
 import httpx
 from user import User
 from notification_builder import NotificationBuilder
-from utilities import print_timestamp, get_roli_data, get_asset_image_url, get_pillow_object_from_url, construct_trade_data, send_trade_webhook, UnknownResponse
+from utilities import print_timestamp, get_roli_data, get_asset_image_url, get_pillow_object_from_url, construct_trade_data, send_trade_webhook, UnknownResponse, format_text
 
 logger = logging.getLogger("horizon.main")
 
@@ -95,9 +95,11 @@ class TradeWorker():
                         print_timestamp(f"An unknown error occurred while creating a notification image: {traceback.format_exc()}")
                         continue
 
+                    content = format_text(self.webhook_content, trade_data)
+
                     try:
 
-                        await send_trade_webhook(self.webhook_url, content=self.webhook_content, attachments=[("trade.png", image_bytes)])
+                        await send_trade_webhook(self.webhook_url, content=content, attachments=[("trade.png", image_bytes)])
 
                         logging.info(f"Sent {self.trade_type} trade webhook: {trade['id']}")
                         print_timestamp(f"Sent {self.trade_type} trade webhook: {trade['id']}")
