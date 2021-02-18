@@ -21,7 +21,7 @@ import traceback
 import httpx
 from trade_worker import TradeWorker
 from user import User
-from utilities import load_config, setup_logging, print_timestamp
+from utilities import load_config, setup_logging, print_timestamp, check_for_update
 
 version = "v0.3.2-alpha"
 os.system("title " + f"Horizon {version}")
@@ -41,6 +41,10 @@ async def main():
 
     print_timestamp(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
     logger.log(49, f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+
+    update = await check_for_update(version)
+    if update:
+        print_timestamp("A new update is available!")
 
     tasks = []
     user = await User.create(config["cookie"])
