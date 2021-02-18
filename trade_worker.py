@@ -48,9 +48,9 @@ class TradeWorker():
             print_timestamp(f"Checking {self.trade_type} trades")
             try:
                 trades_info = await self.user.get_trade_status_info(tradeStatusType = self.trade_type)
-            except httpx.ConnectTimeout:
-                logging.error(f"Connection timed out while trying to grab trade status info: {self.trade_type}: {traceback.format_exc()}")
-                print_timestamp(f"Connection timed out while trying to grab trade status info: {self.trade_type}")
+            except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
+                logging.error(f"Connect/Read timed out while trying to grab trade status info: {self.trade_type}: {traceback.format_exc()}")
+                print_timestamp(f"Connect/Read timed out while trying to grab trade status info: {self.trade_type}")
                 await asyncio.sleep(self.update_interval)
                 continue
             for trade in trades_info['data'][::-1]:
