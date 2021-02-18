@@ -50,6 +50,9 @@ async def main():
     if config['inbound']['enabled']:
         worker = await TradeWorker.create(main_folder_path, user, config['inbound']['webhook'], config['inbound']['update_interval'], config['inbound']['theme_name'], trade_type="Inbound", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], webhook_content=config['inbound']['webhook_content'])
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
+    if config['outbound']['enabled']:
+        worker = await TradeWorker.create(main_folder_path, user, config['outbound']['webhook'], config['outbound']['update_interval'], config['outbound']['theme_name'], trade_type="Outbound", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], webhook_content=config['outbound']['webhook_content'])
+        tasks.append(asyncio.create_task(worker.check_trade_loop()))
 
     if tasks:
         await asyncio.wait(tasks)
