@@ -12,7 +12,7 @@ logger = logging.getLogger("horizon.main")
 class TradeWorker():
 
     @classmethod
-    async def create(cls, main_folder_path: str, user: User, webhook_url: str, update_interval: int, theme_name: str, trade_type: str = "Completed", add_unvalued_to_value: bool = True, testing: bool = False, webhook_content: str = ""):
+    async def create(cls, main_folder_path: str, user: User, webhook_url: str, update_interval: int, theme_name: str, trade_type: str = "Completed", add_unvalued_to_value: bool = True, testing: bool = False, double_check: bool = False, webhook_content: str = ""):
         
         self = TradeWorker()
 
@@ -23,6 +23,7 @@ class TradeWorker():
         self.theme_name = theme_name
         self.trade_type = trade_type
         self.add_unvalued_to_value = add_unvalued_to_value
+        self.double_check = double_check
         self.webhook_content = webhook_content
 
         self.old_trades = []
@@ -55,6 +56,17 @@ class TradeWorker():
                 continue
             for trade in trades_info['data'][::-1]:
                 if trade['id'] not in self.old_trades:
+
+                    print_timestamp(f"Detected new {self.trade_type} trade: {trade['id']}")
+
+                    if self.double_check:
+                        print_timestamp(f"Double-checking new {self.trade_type} trade: {trade['id']}")
+                        await asyncio.sleep(10)
+                        trades_info = await self.user.get_trade_status_info(tradeStatusType = self.trade_type)
+                        if trade['id'] not in [trade['id'] for trade in trades_info['data'][::-1]]:
+                            print_timestamp(f"New {self.trade_type} trade {trade['id']} detected as fake.")
+                            continue
+
                     try:
                         self.roli_data = await get_roli_data()
                     except httpx.ReadTimeout:
@@ -64,8 +76,6 @@ class TradeWorker():
                     self.old_trades.append(trade["id"])
                     if len(self.old_trades) > 25:
                         del self.old_trades[0:-25]
-
-                    print_timestamp(f"Detected new {self.trade_type} trade: {trade['id']}")
 
                     trade_info = await self.user.get_trade_info(trade["id"])
                     trade_data = construct_trade_data(trade_info, self.roli_data, self.user.id, self.add_unvalued_to_value, self.trade_type)

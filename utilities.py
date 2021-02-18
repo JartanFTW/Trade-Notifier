@@ -231,6 +231,7 @@ def load_config(path: str):
 
     config['logging_level'] = int(parser['DEBUG']['logging_level'])
     config['testing'] = True if str(parser['DEBUG']['testing']).upper() == "TRUE" else False
+    config['double_check'] = True if str(parser['DEBUG']['double_check']).upper() == "TRUE" else False
     
     return config
 
