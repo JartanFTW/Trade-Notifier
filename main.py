@@ -40,7 +40,7 @@ async def main():
     setup_logging(main_folder_path, level = config['logging_level'])
 
     print_timestamp(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
-    logging.log(49, f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+    logger.log(49, f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
 
     tasks = []
     user = await User.create(config["cookie"])
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception:
-        logging.critical(f"An unknown critical error occurred: {traceback.format_exc()}")
+        logger.critical(f"An unknown critical error occurred: {traceback.format_exc()}")
         print(f"An unknown critical error occurred: {traceback.format_exc()}")
     finally:
         print("If you're seeing this, chances are something has gone horribly wrong.\n You should open an Issue in the GitHub and provide your latest log file from the logs folder.\n If you don't have a GitHub, please provide the log file in the Horizon discord server.")
