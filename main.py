@@ -66,4 +66,5 @@ if __name__ == "__main__":
         logging.critical(f"An unknown critical error occurred: {traceback.format_exc()}")
         print(f"An unknown critical error occurred: {traceback.format_exc()}")
     finally:
+        print("If you're seeing this, chances are something has gone horribly wrong.\n You should open an Issue in the GitHub and provide your latest log file from the logs folder.\n If you don't have a GitHub, please provide the log file in the Horizon discord server.")
         input("Operations have complete. Press Enter to exit.")
