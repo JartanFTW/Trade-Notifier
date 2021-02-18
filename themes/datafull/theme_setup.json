@@ -1,0 +1,527 @@
+{
+
+    "background_image": "background.png",
+
+    "drawn_images": {
+
+        "give_item_box_1": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [150, 230],
+            "center_on_position": true,
+            "transparency": false
+        },
+		"give_item_box_2": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [410, 230],
+            "center_on_position": true,
+            "transparency": false
+        },
+		"give_item_box_3": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [670, 230],
+            "center_on_position": true,
+            "transparency": false
+        },
+		"give_item_box_4": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [930, 230],
+            "center_on_position": true,
+            "transparency": false
+        },
+		
+		"take_item_box_1": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [150, 740],
+            "center_on_position": true,
+            "transparency": false
+        },
+		"take_item_box_2": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [410, 740],
+            "center_on_position": true,
+            "transparency": false
+        },
+		"take_item_box_3": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [670, 740],
+            "center_on_position": true,
+            "transparency": false
+        },
+		"take_item_box_4": {
+            "file_name": "item_box.png",
+            "size": [230, 230],
+            "position": [930, 740],
+            "center_on_position": true,
+            "transparency": false
+        }
+    },
+
+    "give": {
+
+        "item1": {
+            "size": [220, 220],
+            "position": [150, 230],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item2": {
+            "size": [220, 220],
+            "position": [410, 230],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item3": {
+            "size": [220, 220],
+            "position": [670, 230],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item4": {
+            "size": [220, 220],
+            "position": [930, 230],
+            "center_on_position": true,
+            "transparency": true
+        }
+    },
+
+    "take": {
+
+        "item1": {
+            "size": [220, 220],
+            "position": [150, 740],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item2": {
+            "size": [220, 220],
+            "position": [410, 740],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item3": {
+            "size": [220, 220],
+            "position": [670, 740],
+            "center_on_position": true,
+            "transparency": true
+        },
+
+        "item4": {
+            "size": [220, 220],
+            "position": [930, 740],
+            "center_on_position": true,
+            "transparency": true
+        }
+    },
+
+    "drawn_text": {
+	
+		"trade_type": {
+			"text": "{trade_status} trade",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 50,
+            "position": [540, 45],
+            "center_on_position": true,
+            "rgba": [195, 195, 195, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 3
+        },
+		
+		"give_user_details": {
+            "text": "{give_user_display_name} ({give_user_id}) ({give_user_name})",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [35, 65],
+            "center_on_position": false,
+            "rgba": [218, 165, 32, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 2
+        },
+		"take_user_details": {
+            "text": "{take_user_display_name} ({take_user_id}) ({take_user_name})",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [35, 575],
+            "center_on_position": false,
+            "rgba": [218, 165, 32, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 2
+        },
+		
+		"give_item_1_rap": {
+			"text": "{give_item1_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [150, 365],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "give_item_1_value": {
+            "text": "{give_item1_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [150, 400],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_2_rap": {
+			"text": "{give_item2_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [410, 365],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "give_item_2_value": {
+            "text": "{give_item2_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [410, 400],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_3_rap": {
+			"text": "{give_item3_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [670, 365],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "give_item_3_value": {
+            "text": "{give_item3_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [670, 400],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_4_rap": {
+			"text": "{give_item4_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [930, 365],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "give_item_4_value": {
+            "text": "{give_item4_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [930, 400],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		
+		"take_item_1_rap": {
+			"text": "{take_item1_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [150, 875],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "take_item_1_value": {
+            "text": "{take_item1_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [150, 910],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_2_rap": {
+			"text": "{take_item2_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [410, 875],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "take_item_2_value": {
+            "text": "{take_item2_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [410, 910],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_3_rap": {
+			"text": "{take_item3_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [670, 875],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "take_item_3_value": {
+            "text": "{take_item3_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [670, 910],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_4_rap": {
+			"text": "{take_item4_recent_average_price}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [930, 875],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "take_item_4_value": {
+            "text": "{take_item4_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 40,
+            "position": [930, 910],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		
+		"total_rap_given": {
+            "text": "{give_rap}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 45,
+            "position": [930, 460],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "total_value_given": {
+            "text": "{give_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 45,
+            "position": [930, 505],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "total_rap_received": {
+            "text": "{take_rap}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 45,
+            "position": [930, 970],
+            "center_on_position": true,
+            "rgba": [0, 128, 0, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+        "total_value_received": {
+            "text": "{take_roli_value}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 45,
+            "position": [930, 1015],
+            "center_on_position": true,
+            "rgba": [0, 128, 255, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		
+		"give_item_1_details": {
+			"text": "1. {give_item1_name} {give_item1_serial_number} {give_item1_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 435],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_2_details": {
+			"text": "2. {give_item2_name} {give_item2_serial_number} {give_item2_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 465],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_3_details": {
+			"text": "3. {give_item3_name} {give_item3_serial_number} {give_item3_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 495],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_4_details": {
+			"text": "4. {give_item4_name} {give_item4_serial_number} {give_item4_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 525],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_1_details": {
+			"text": "1. {take_item1_name} {take_item1_serial_number} {take_item1_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 945],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_2_details": {
+			"text": "2. {take_item2_name} {take_item2_serial_number} {take_item2_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 975],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_3_details": {
+			"text": "3. {take_item3_name} {take_item3_serial_number} {take_item3_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 1005],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_4_details": {
+			"text": "4. {take_item4_name} {take_item4_serial_number} {take_item4_asset_id}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [35, 1035],
+            "center_on_position": false,
+            "rgba": [158, 158, 158, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		
+		"give_item_1_serial_number": {
+			"text": "{give_item1_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [40, 310],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_2_serial_number": {
+			"text": "{give_item2_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [300, 310],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_3_serial_number": {
+			"text": "{give_item3_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [560, 310],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"give_item_4_serial_number": {
+			"text": "{give_item4_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [820, 310],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_1_serial_number": {
+			"text": "{take_item1_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [40, 820],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_2_serial_number": {
+			"text": "{take_item2_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [300, 820],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_3_serial_number": {
+			"text": "{take_item3_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [560, 820],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        },
+		"take_item_4_serial_number": {
+			"text": "{take_item4_serial_number}",
+            "font_file": "Rubik-Medium.ttf",
+            "font_size": 30,
+            "position": [820, 820],
+            "center_on_position": false,
+            "rgba": [0, 152, 136, 255],
+            "stroke_rgba": [0, 0, 0, 255],
+            "stroke_width": 1
+        }
+    }
+}
