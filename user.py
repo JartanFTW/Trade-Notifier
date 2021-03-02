@@ -89,7 +89,7 @@ class User():
 
             logger.info("Updating user id")
 
-            request = await self.client.get("https://www.users.roblox.com/v1/users/authenticated")
+            request = await self.client.get("https://users.roblox.com/v1/users/authenticated")
 
             if request.status_code == 200:
                 request_json = request.json()
