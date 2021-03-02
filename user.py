@@ -89,11 +89,11 @@ class User():
 
             logger.info("Updating user id")
 
-            request = await self.client.get("https://www.roblox.com/game/GetCurrentUser.ashx")
+            request = await self.client.get("https://www.users.roblox.com/v1/users/authenticated")
 
-            if request.status_code == 200 and request.text != "null":
-
-                self.id = int(request.text)
+            if request.status_code == 200:
+                request_json = request.json()
+                self.id = int(request_json['id'])
 
                 logger.debug(f"Updated user id: {request.text}")
 
