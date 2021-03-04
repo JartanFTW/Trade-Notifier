@@ -23,7 +23,7 @@ from trade_worker import TradeWorker
 from user import User
 from utilities import load_config, setup_logging, print_timestamp, check_for_update
 
-version = "v0.3.2-alpha"
+version = "v0.3.3-alpha"
 os.system("title " + f"Horizon {version}")
 
 logger = logging.getLogger("horizon.main")
