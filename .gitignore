@@ -4,3 +4,4 @@ horizon_config.ini
 main.spec
 /dist
 /build
+/.vscode
