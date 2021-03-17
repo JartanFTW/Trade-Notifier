@@ -13,196 +13,134 @@
 #    limitations under the License.
 
 
+# Standard Library
 import asyncio
 from configparser import ConfigParser
 import logging
 import os
-from PIL import Image
 import time
+
+# Third-Party
+from PIL import Image # Actually using Pillow
 import httpx
 
 logger = logging.getLogger("horizon.utilities")
 
-
-
 class UnknownResponse(Exception):
-
     def __init__(self, response_code: int, request_url: str, response_text: str = None):
-
             self.response_code = response_code
-
             self.request_url = request_url
-
             self.response_text = response_text
-
-            self.err = f"Unknown response code {response_code} was received."
-
-            logger.critical(f"An unknown response {response_code} was received when calling {request_url}")
-
+            self.err = f"An unhandled response {response_code} was received when calling {request_url}"
+            logger.error(self.err)
             super().__init__(self.err)
 
-
-
 class InvalidCookie(Exception):
-
     def __init__(self, response_code: int, request_url: str, response_text: str = None):
-
         self.response_code = response_code
-
         self.request_url = request_url
-
         self.response_text = response_text
-
-        self.err = f"Input cookie is invalid and returned response code {response_code}."
-
-        logger.critical(f"An invalid cookie was detected with response code {response_code} when calling {request_url}")
-
+        self.err = f"An invalid cookie was detected with response code {response_code} when calling {request_url}"
+        logger.error(self.err)
         super().__init__(self.err)
 
 
-
 def print_timestamp(text: str):
+    """Prints to console the provided string with a H:M:S | timestamp before it"""
     print(time.strftime('%H:%M:%S | ', time.localtime()) + text)
 
-
-
 async def get_asset_image_url(asset_ids: list, format: str = "Png", isCircular: str = "false", size: str = "110x110"):
-
+    """Grabs asset image urls from roblox using provided asset ids
+    asset_ids should be a list of integer roblox asset ids
+    format should be string either Png or Jpeg depending on if you want opacity or not
+    isCircular should be a string either true or false no capitals based on if you want the image to be circular or not
+    size should be a string and a size roblox supports. use google to find these or look here: https://thumbnails.roblox.com/docs#!/Assets/get_v1_assets
+    Returns a dict:
+    {
+    "data": [
+        {
+        "targetId": 0,
+        "state": "Error",
+        "imageUrl": "string"
+        }
+    ]
+    }
+    """
     async with httpx.AsyncClient() as client:
-        
         while True:
-
-            logger.info("Grabbing asset image urls")
-
+            logger.debug("Grabbing asset image urls")
             request = await client.get(f"https://thumbnails.roblox.com/v1/assets?assetIds={',+'.join(asset_ids)}&format={format}&isCircular={isCircular}&size={size}")
-
             if request.status_code == 200:
-
                 request_json = request.json()
-
-                logger.debug(f"Grabbed asset image urls: {request_json}")
-
+                logger.info("Grabbed asset image urls")
                 return request_json
-
-            logger.warning(f"Failed to grab asset image urls: {request.status_code}")
-
             if request.status_code == 429:
-
                 await asyncio.sleep(5)
-
                 continue
-
             else:
-
-                logger.critical(f"Encountered an unhandled response code while updating user csrf: {request.status_code}")
-
                 raise UnknownResponse(request.status_code, request.url, response_text = request.text)
-
-
 
 async def get_pillow_object_from_url(url: str):
-
+    """Takes a url string containing an image and returns a pillow Image object"""
     async with httpx.AsyncClient() as client:
-
         while True:
-
-            logger.info(f"Creating pillow Image object from url: {url}")
-
+            logger.debug(f"Creating pillow Image object from url {url}")
             request = await client.get(url)
-
             if request.status_code == 200:
-                
                 p_obj = Image.open(request)
-
-                logger.debug(f"Created pillow Image object from url: {url}")
-
+                logger.info(f"Created pillow Image object from url: {url}")
                 return p_obj
-            
-            logger.warning(f"Failed to create pillow Image object from url: {request.status_code}")
-
             if request.status_code == 429:
-
                 await asyncio.sleep(5)
-
                 continue
-
             else:
-
-                logger.critical(f"Encountered an unknown response code while creating pillow Image object from url: {request.status_code}")
-
                 raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
-
-
-async def send_trade_webhook(webhook_url: str, content: str = "", attachments: list = None): # TODO Rewrite properly utilizing **kwargs for custom request stuffs.
-
+async def send_trade_webhook(webhook_url: str, content: str = "", attachments: list = None):
+    """Sends a webhook to the provided url with the content and attachments provided
+    webhook_url must be a string
+    content must be a string and a maximum of 2000 characters else discord will respond badly
+    attachments must be 
+    """
     files = {}
     for i in range(len(attachments)):
         files[f"file_{i}"] = (attachments[i][0], attachments[i][1])
-
     async with httpx.AsyncClient() as client:
-
-        logger.info("Sending trade webhook")
-
-        request = await client.post(webhook_url, data={"content": content}, files = files)
-    
+        logger.debug("Sending trade webhook")
+        request = await client.post(webhook_url, data={"content": content[:2000]}, files = files)
     if request.status_code == 200:
-
-        logger.debug("Sent trade webhook")
-
+        logger.info("Sent trade webhook")
         return
-
     else:
-
-        logger.error("Failed to send trade webhook")
-
         raise UnknownResponse(request.status_code, request.url, response_text = request.text)
-
-
 
 async def get_roli_data():
-
+    """Grabs rolimons itemdetails data and returns it as a dict"""
     async with httpx.AsyncClient() as client:
-
-        logger.info("Getting rolimon's data")
-
+        logger.debug("Getting rolimon's data")
         request = await client.get("https://www.rolimons.com/itemapi/itemdetails")
-
     if request.status_code == 200:
-
         request_json = request.json()
-
-        logger.debug(f"Got rolimon's data: {request_json}")
-
+        logger.info("Got rolimon's data")
         return request_json
-    
     else:
-
-        logger.critical(f"Failed to update rolimon's data: {request.status_code}")
-
         raise UnknownResponse(request.status_code, request.url, response_text = request.text)
 
-
-
-def setup_logging(path: str, level=40):
-
+def setup_logging(path: str, level: int = 40):
+    """Sets up logging using basicConfig at level provided inside a logs folder created at the path string provided
+    path must be a string and compatible with os module, and accessible by Horizon
+    level must be an integer representing what level to log. See python Logging module documentation for details on this
+    """
     logs_folder_path = os.path.join(path, "logs")
-
     if not os.path.exists(logs_folder_path):
         os.makedirs(logs_folder_path)
-    
     log_path = os.path.join(logs_folder_path, time.strftime('%m %d %Y %H %M %S', time.localtime()))
-
     logging.basicConfig(filename=f"{log_path}.log", level=level, format="%(asctime)s:%(levelname)s:%(message)s")
 
-
-
 def load_config(path: str):
-
+    """Loads config from path provided and returns it formatted for Horizon as a dict"""
     parser = ConfigParser()
-
     parser.read(path)
-
     config = {}
 
     config['cookie'] = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_" + str(parser['GENERAL']['cookie']).split("_")[-1]
@@ -234,8 +172,6 @@ def load_config(path: str):
     config['double_check'] = True if str(parser['DEBUG']['double_check']).upper() == "TRUE" else False
     
     return config
-
-
 
 def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_unvalued_to_value: bool, trade_status: str):
     """Inputs roblox trade data, rolimons data, 'self' user_id to mark one of the trade info people as user, and unvalued to value
@@ -271,9 +207,11 @@ def construct_trade_data(trade_info: dict, roli_data: dict, user_id: int, add_un
     
     return trade_data
 
-
 def format_text(text: str, trade_data: dict):
     """Formats different keywords for text stitching
+    text is the string that needs formatting
+    trade_data is a trade_data generated from construct_trade_data to use the details to format with
+    Returns a formatted version of text
     """
     item_filter = ["item2", "item3", "item4"]
     var_filter = ["id", "serialNumber", "assetId", "name", "originalPrice", "assetStock"]
@@ -399,20 +337,15 @@ def format_text(text: str, trade_data: dict):
     return text
 
 async def check_for_update(current_version: str):
-    """ Checks if provided current_version variable matches that of tag_name on the API. Returns True if there is an update, False if there is not.
+    """ Checks if provided current_version variable matches that of tag_name on the latest release GitHub API. Returns True if there is an update, False if there is not.
     """
-
     async with httpx.AsyncClient() as client:
         logger.info("Checking for Horizon update")
         request = await client.get("https://api.github.com/repos/JartanFTW/Trade-Notifier/releases/latest")
-
     if request.status_code == 200:
         if current_version != request.json()['tag_name']:
             return True
         else:
             return False
-
     else:
-        logger.error("Failed to check for new update")
-        print_timestamp("Failed to check for new update")
         raise UnknownResponse(request.response_code, request.url, response_text=request.text)
