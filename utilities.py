@@ -221,6 +221,9 @@ def load_config(path: str):
     config["double_check"] = (
         True if str(parser["DEBUG"]["double_check"]).upper() == "TRUE" else False
     )
+    config["check_for_update"] = (
+        True if str(parser["DEBUG"]["check_for_update"]).upper() == "TRUE" else False
+    )
 
     return config
 
