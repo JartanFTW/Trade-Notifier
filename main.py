@@ -13,12 +13,17 @@
 #    limitations under the License.
 
 
+# Standard Library
 import asyncio
 import logging
 import os
 import sys
 import traceback
+
+# Third Party
 import httpx
+
+# Local
 from trade_worker import TradeWorker
 from user import User
 from utilities import load_config, setup_logging, print_timestamp, check_for_update

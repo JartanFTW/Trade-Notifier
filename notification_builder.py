@@ -13,11 +13,16 @@
 #    limitations under the License.
 
 
+# Standard Library
 from io import BytesIO
-import os
 import json
+import os
 from collections import OrderedDict
+
+# Third Party
 from PIL import Image, ImageDraw, ImageFont
+
+# Local
 from utilities import format_text
 
 
@@ -26,7 +31,6 @@ class NotificationBuilder(Exception):
         self.theme_folder = theme_folder
         self.load_settings(theme_folder)
         pass
-        # TODO Add check to see if all required files by config are present.
 
     def build_image(self, trade_data: dict):
         """Takes in trade data and builds notification according to theme_setup, in the order that it's written in theme_setup."""
