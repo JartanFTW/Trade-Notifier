@@ -11,7 +11,7 @@ Horizon is most frequently used by traders looking for an easy way to be alerted
 ## Where to start  
 Horizon is compatible with both Windows and Linux, although the setup is slightly different.  
 Check out the [Quickstart page on the Wiki](https://github.com/JartanFTW/Trade-Notifier/wiki/Quickstart) for details on how to get Horizon setup for Windows.  
-For Linux, it's a similar process to Windows but Python must be installed and used with the Horizon source code, instead of the executable.  
+For Linux, it's a similar process to Windows but Python must be installed and used with the Horizon source code, instead of the executable. To install all third party Python dependencies required by Horizon, you can run `pip install -r requirements.txt` in the Horizon directory.   
   
 ## How you can help
 If you would like to contribute to Horizon's development, there are a variety of things you can do.  
