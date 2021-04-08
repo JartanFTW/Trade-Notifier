@@ -33,7 +33,7 @@ from utilities import (
     check_for_update_loop,
 )
 
-version = "v0.3.2-alpha"
+version = "v0.3.3-alpha"
 os.system("title " + f"Horizon {version}")
 
 logger = logging.getLogger("horizon.main")
