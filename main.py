@@ -31,16 +31,21 @@ logger = logging.getLogger("horizon.main")
 
 async def main():
 
-    if getattr(sys, "frozen", False): # Check if program is compiled to exe
+    if getattr(sys, "frozen", False):  # Check if program is compiled to exe
         main_folder_path = os.path.dirname(sys.executable)
     else:
         main_folder_path = os.path.dirname(os.path.abspath(__file__))
 
     config = load_config(os.path.join(main_folder_path, "horizon_config.ini"))
-    setup_logging(main_folder_path, level = config['logging_level'])
+    setup_logging(main_folder_path, level=config["logging_level"])
 
-    print_timestamp(f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
-    logger.log(49, f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW")
+    print_timestamp(
+        f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW"
+    )
+    logger.log(
+        49,
+        f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW",
+    )
 
     update = await check_for_update(version)
     if update:
@@ -48,20 +53,53 @@ async def main():
 
     tasks = []
     user = await User.create(config["cookie"])
-    if config['completed']['enabled']:
-        worker = await TradeWorker.create(main_folder_path, user, config['completed']['webhook'], config['completed']['update_interval'], config['completed']['theme_name'], trade_type="Completed", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], webhook_content=config['completed']['webhook_content'])
+    if config["completed"]["enabled"]:
+        worker = await TradeWorker.create(
+            main_folder_path,
+            user,
+            config["completed"]["webhook"],
+            config["completed"]["update_interval"],
+            config["completed"]["theme_name"],
+            trade_type="Completed",
+            add_unvalued_to_value=config["add_unvalued_to_value"],
+            testing=config["testing"],
+            webhook_content=config["completed"]["webhook_content"],
+        )
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
-    if config['inbound']['enabled']:
-        worker = await TradeWorker.create(main_folder_path, user, config['inbound']['webhook'], config['inbound']['update_interval'], config['inbound']['theme_name'], trade_type="Inbound", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], double_check=config['double_check'], webhook_content=config['inbound']['webhook_content'])
+    if config["inbound"]["enabled"]:
+        worker = await TradeWorker.create(
+            main_folder_path,
+            user,
+            config["inbound"]["webhook"],
+            config["inbound"]["update_interval"],
+            config["inbound"]["theme_name"],
+            trade_type="Inbound",
+            add_unvalued_to_value=config["add_unvalued_to_value"],
+            testing=config["testing"],
+            double_check=config["double_check"],
+            webhook_content=config["inbound"]["webhook_content"],
+        )
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
-    if config['outbound']['enabled']:
-        worker = await TradeWorker.create(main_folder_path, user, config['outbound']['webhook'], config['outbound']['update_interval'], config['outbound']['theme_name'], trade_type="Outbound", add_unvalued_to_value=config['add_unvalued_to_value'], testing=config['testing'], webhook_content=config['outbound']['webhook_content'])
+    if config["outbound"]["enabled"]:
+        worker = await TradeWorker.create(
+            main_folder_path,
+            user,
+            config["outbound"]["webhook"],
+            config["outbound"]["update_interval"],
+            config["outbound"]["theme_name"],
+            trade_type="Outbound",
+            add_unvalued_to_value=config["add_unvalued_to_value"],
+            testing=config["testing"],
+            webhook_content=config["outbound"]["webhook_content"],
+        )
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
 
     if tasks:
         await asyncio.wait(tasks)
     else:
-        print_timestamp("Looks like you don't have any trade types enabled in the config! There is nothing for me to do :(")
+        print_timestamp(
+            "Looks like you don't have any trade types enabled in the config! There is nothing for me to do :("
+        )
     await user.client.aclose()
     return
 
@@ -72,6 +110,8 @@ if __name__ == "__main__":
     except Exception:
         logger.critical(f"An unknown critical error occurred: {traceback.format_exc()}")
         print(f"An unknown critical error occurred: {traceback.format_exc()}")
-        print("If you're seeing this, chances are something has gone horribly wrong.\n You should open an Issue in the GitHub and provide your latest log file from the logs folder.\n If you don't have a GitHub, please provide the log file in the Horizon discord server.")
+        print(
+            "If you're seeing this, chances are something has gone horribly wrong.\n You should open an Issue in the GitHub and provide your latest log file from the logs folder.\n If you don't have a GitHub, please provide the log file in the Horizon discord server."
+        )
     finally:
         input("Operations have complete. Press Enter to exit.")

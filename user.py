@@ -25,8 +25,8 @@ from utilities import UnknownResponse, InvalidCookie
 
 logger = logging.getLogger("horizon.user")
 
-class User():
 
+class User:
     @classmethod
     async def create(cls, security_cookie):
         """Factory method to allow for async initialization of User object.
@@ -58,9 +58,13 @@ class User():
                     await asyncio.sleep(5)
                     continue
                 if request.status_code == 401:
-                    raise InvalidCookie(request.status_code, request.url, response_text = request.text)
+                    raise InvalidCookie(
+                        request.status_code, request.url, response_text=request.text
+                    )
                 else:
-                    raise UnknownResponse(request.status_code, request.url, response_text = request.text)
+                    raise UnknownResponse(
+                        request.status_code, request.url, response_text=request.text
+                    )
 
     async def update_id(self):
         """Updates self.id to integer id of roblox account tied to the security_cookie passed in on class creation.
@@ -68,19 +72,25 @@ class User():
         """
         while True:
             logger.debug("Updating user id")
-            request = await self.client.get("https://users.roblox.com/v1/users/authenticated")
+            request = await self.client.get(
+                "https://users.roblox.com/v1/users/authenticated"
+            )
             if request.status_code == 200:
                 request_json = request.json()
-                self.id = int(request_json['id'])
+                self.id = int(request_json["id"])
                 logger.info("Updated user id")
                 return
             elif request.status_code == 429:
                 await asyncio.sleep(5)
                 continue
             else:
-                raise UnknownResponse(request.status_code, request.url, response_text=request.text)
+                raise UnknownResponse(
+                    request.status_code, request.url, response_text=request.text
+                )
 
-    async def get_trade_status_info(self, tradeStatusType: str = "Inbound", limit: int = 10, sortOrder: str = "Asc"):
+    async def get_trade_status_info(
+        self, tradeStatusType: str = "Inbound", limit: int = 10, sortOrder: str = "Asc"
+    ):
         """Grabs general details about a certain trade type.
         tradeStatusType can be Inbound, Outbound, or Completed
         limit can be 10, 25, or 100 as per Roblox API
@@ -108,7 +118,9 @@ class User():
         attempt = 0
         while True:
             logger.debug(f"Grabbing user trade status info {tradeStatusType}")
-            request = await self.client.get(f"https://trades.roblox.com/v1/trades/{tradeStatusType}?limit={limit}&sortOrder={sortOrder}")
+            request = await self.client.get(
+                f"https://trades.roblox.com/v1/trades/{tradeStatusType}?limit={limit}&sortOrder={sortOrder}"
+            )
             if request.status_code == 200:
                 request_json = request.json()
                 logger.debug(f"Grabbed user trade status info {tradeStatusType}")
@@ -119,7 +131,9 @@ class User():
             else:
                 attempt += 1
                 if attempt > 2:
-                    raise UnknownResponse(request.status_code, request.url, response_text = request.text)
+                    raise UnknownResponse(
+                        request.status_code, request.url, response_text=request.text
+                    )
                 else:
                     await self.update_csrf()
                     continue
@@ -166,7 +180,9 @@ class User():
         attempt = 0
         while True:
             logger.debug("Grabbing user trade info")
-            request = await self.client.get(f"https://trades.roblox.com/v1/trades/{trade_id}")
+            request = await self.client.get(
+                f"https://trades.roblox.com/v1/trades/{trade_id}"
+            )
             if request.status_code == 200:
                 request_json = request.json()
                 logger.debug(f"Grabbed user trade info {trade_id}")
@@ -177,7 +193,9 @@ class User():
             else:
                 attempt += 1
                 if attempt > 2:
-                    raise UnknownResponse(request.status_code, request.url, response_text = request.text)
+                    raise UnknownResponse(
+                        request.status_code, request.url, response_text=request.text
+                    )
                 else:
                     await self.update_csrf()
                     continue
