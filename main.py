@@ -26,9 +26,14 @@ import httpx
 # Local
 from trade_worker import TradeWorker
 from user import User
-from utilities import load_config, setup_logging, print_timestamp, check_for_update
+from utilities import (
+    load_config,
+    setup_logging,
+    print_timestamp,
+    check_for_update_loop,
+)
 
-version = "v0.3.3-alpha"
+version = "v0.3.2-alpha"
 os.system("title " + f"Horizon {version}")
 
 logger = logging.getLogger("horizon.main")
@@ -52,13 +57,11 @@ async def main():
         f"Horizon Trade Notifier {version} - https://discord.gg/Xu8pqDWmgE - https://github.com/JartanFTW",
     )
 
-    update = await check_for_update(version)
-    if update:
-        print_timestamp("A new update is available!")
-
     tasks = []
+    update_webhook = None
     user = await User.create(config["cookie"])
     if config["completed"]["enabled"]:
+        update_webhook = config["completed"]["webhook"]
         worker = await TradeWorker.create(
             main_folder_path,
             user,
@@ -72,6 +75,8 @@ async def main():
         )
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
     if config["inbound"]["enabled"]:
+        if not isinstance(update_webhook, str):
+            update_webhook = config["inbound"]["webhook"]
         worker = await TradeWorker.create(
             main_folder_path,
             user,
@@ -86,6 +91,8 @@ async def main():
         )
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
     if config["outbound"]["enabled"]:
+        if not isinstance(update_webhook, str):
+            update_webhook = config["outbound"]["webhook"]
         worker = await TradeWorker.create(
             main_folder_path,
             user,
@@ -100,6 +107,12 @@ async def main():
         tasks.append(asyncio.create_task(worker.check_trade_loop()))
 
     if tasks:
+        if config["check_for_update"]:
+            tasks.append(
+                asyncio.create_task(
+                    check_for_update_loop(version, config["completed"]["webhook"])
+                )
+            )
         await asyncio.wait(tasks)
     else:
         print_timestamp(
