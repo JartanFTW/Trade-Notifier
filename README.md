@@ -15,7 +15,7 @@ For Linux, it's a similar process to Windows but Python must be installed and us
   
 ## How you can help
 If you would like to contribute to Horizon's development, there are a variety of things you can do.  
-1. Report bugs! We can't fix issues with Horizon that we don't know exist. We prefer you make an [issue in the repository](https://github.com/JartanFTW/Trade-Notifier/issues) however letting us know in Discord is always fine too!  
+1. Report bugs! We can't fix issues with Horizon that we don't know exist. We prefer you make a [bug report in the issues tab](https://github.com/JartanFTW/Trade-Notifier/issues) however letting us know in Discord is always fine too!  
 2. Request features! While Horizon is at this point a fully fleshed out program, we're always looking for great new ideas to implement. If you have an idea for a feature, create a [feature request in the repository](https://github.com/JartanFTW/Trade-Notifier/issues) and let us know! A Discord message is always acceptable too :)
   
 # Contact
