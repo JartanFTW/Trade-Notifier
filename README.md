@@ -4,7 +4,7 @@ Horizon is being actively maintained by Jartan, and features are being implement
   
 Horizon boasts an impressive range of features, including custom-built images at runtime adapting to detected trade data and predefined image configuration.  
 Themes are Horizon's most impressive feature, making it easy for anyone to make a beautiful theme suited to what they need.  
-Ontop of this, Horizon also has maintained documentation available on the Wiki tab of the GitHut repository, including tutorials on how to get started, along with explanations of all the customization options Horizon offers.  
+Ontop of this, Horizon also has maintained documentation available on the Wiki tab of the GitHub repository, including tutorials on how to get started, along with explanations of all the customization options Horizon offers.  
 
 Contact:  
 Email: jgogox@gmail.com  
