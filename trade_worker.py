@@ -20,6 +20,7 @@ import os
 import traceback
 
 # Third Party
+from discord import Webhook, File
 import httpx
 
 # Local
@@ -31,9 +32,9 @@ from utilities import (
     get_asset_image_url,
     get_pillow_object_from_url,
     construct_trade_data,
-    send_trade_webhook,
     UnknownResponse,
     format_text,
+    HttpxWebhookAdapter,
 )
 
 logger = logging.getLogger("horizon.main")
@@ -157,21 +158,16 @@ class TradeWorker:
         image_bytes = builder.build_image(trade_data)
         content = format_text(self.webhook_content, trade_data)
 
-        try:
-            await send_trade_webhook(
-                self.webhook_url,
+        async with httpx.AsyncClient() as client:
+            webhook = Webhook.from_url(
+                self.webhook_url, adapter=HttpxWebhookAdapter(client)
+            )
+            await webhook.send(
                 content=content,
-                attachments=[("trade.png", image_bytes)],
+                file=File(image_bytes, filename="trade.png"),
             )
-            logger.info(f"Sent {self.trade_type} trade webhook: {trade['id']}")
-            print_timestamp(f"Sent {self.trade_type} trade webhook: {trade['id']}")
-        except UnknownResponse:
-            logger.error(
-                f"Unable to send {self.trade_type} trade webhook: {trade['id']} {traceback.format_exc()}"
-            )
-            print_timestamp(
-                f"Unable to send {self.trade_type} trade webhook: {trade['id']}"
-            )
+        logger.info(f"Sent {self.trade_type} trade webhook: {trade['id']}")
+        print_timestamp(f"Sent {self.trade_type} trade webhook: {trade['id']}")
 
     async def check_trade_loop(self):
         while True:
