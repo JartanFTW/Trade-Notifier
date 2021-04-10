@@ -37,7 +37,11 @@ class User:
         self = User()
         self.client = httpx.AsyncClient(cookies={})
         self.client.cookies[".ROBLOSECURITY"] = security_cookie
-        await self.update_csrf()
+        try:
+            await self.update_csrf()
+        except InvalidCookie as e:
+            await self.client.aclose()
+            raise (e)
         await self.update_id()
         logger.info("Created user object")
         return self
@@ -59,7 +63,10 @@ class User:
                     continue
                 if request.status_code == 401:
                     raise InvalidCookie(
-                        request.status_code, request.url, response_text=request.text
+                        request.status_code,
+                        request.url,
+                        response_text=request.text,
+                        cookie=self.client.cookies[".ROBLOSECURITY"],
                     )
                 else:
                     raise UnknownResponse(
