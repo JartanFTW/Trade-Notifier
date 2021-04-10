@@ -59,7 +59,6 @@ async def main():
     )
 
     users = []
-    tasks = []
     for cookie in config["cookies"]:
         try:
             user = await User.create(cookie)
@@ -67,46 +66,53 @@ async def main():
         except InvalidCookie:
             print_timestamp(f"An invalid cookie was detected: {cookie}")
             continue
-        if config["completed"]["enabled"]:
-            worker = await TradeWorker.create(
-                main_folder_path,
-                user,
-                config["completed"]["webhook"],
-                config["completed"]["update_interval"],
-                config["completed"]["theme_name"],
-                trade_type="Completed",
-                add_unvalued_to_value=config["add_unvalued_to_value"],
-                testing=config["testing"],
-                webhook_content=config["completed"]["webhook_content"],
-            )
-            tasks.append(asyncio.create_task(worker.check_trade_loop()))
-        if config["inbound"]["enabled"]:
-            worker = await TradeWorker.create(
-                main_folder_path,
-                user,
-                config["inbound"]["webhook"],
-                config["inbound"]["update_interval"],
-                config["inbound"]["theme_name"],
-                trade_type="Inbound",
-                add_unvalued_to_value=config["add_unvalued_to_value"],
-                testing=config["testing"],
-                double_check=config["double_check"],
-                webhook_content=config["inbound"]["webhook_content"],
-            )
-            tasks.append(asyncio.create_task(worker.check_trade_loop()))
-        if config["outbound"]["enabled"]:
-            worker = await TradeWorker.create(
-                main_folder_path,
-                user,
-                config["outbound"]["webhook"],
-                config["outbound"]["update_interval"],
-                config["outbound"]["theme_name"],
-                trade_type="Outbound",
-                add_unvalued_to_value=config["add_unvalued_to_value"],
-                testing=config["testing"],
-                webhook_content=config["outbound"]["webhook_content"],
-            )
-            tasks.append(asyncio.create_task(worker.check_trade_loop()))
+    if users:
+        tasks = []
+        max_username_length = max([len(user.display_name) for user in users])
+        for user in users:
+            if config["completed"]["enabled"]:
+                worker = await TradeWorker.create(
+                    main_folder_path,
+                    user,
+                    config["completed"]["webhook"],
+                    config["completed"]["update_interval"],
+                    config["completed"]["theme_name"],
+                    trade_type="Completed",
+                    add_unvalued_to_value=config["add_unvalued_to_value"],
+                    testing=config["testing"],
+                    webhook_content=config["completed"]["webhook_content"],
+                    max_username_length=max_username_length,
+                )
+                tasks.append(asyncio.create_task(worker.check_trade_loop()))
+            if config["inbound"]["enabled"]:
+                worker = await TradeWorker.create(
+                    main_folder_path,
+                    user,
+                    config["inbound"]["webhook"],
+                    config["inbound"]["update_interval"],
+                    config["inbound"]["theme_name"],
+                    trade_type="Inbound",
+                    add_unvalued_to_value=config["add_unvalued_to_value"],
+                    testing=config["testing"],
+                    double_check=config["double_check"],
+                    webhook_content=config["inbound"]["webhook_content"],
+                    max_username_length=max_username_length,
+                )
+                tasks.append(asyncio.create_task(worker.check_trade_loop()))
+            if config["outbound"]["enabled"]:
+                worker = await TradeWorker.create(
+                    main_folder_path,
+                    user,
+                    config["outbound"]["webhook"],
+                    config["outbound"]["update_interval"],
+                    config["outbound"]["theme_name"],
+                    trade_type="Outbound",
+                    add_unvalued_to_value=config["add_unvalued_to_value"],
+                    testing=config["testing"],
+                    webhook_content=config["outbound"]["webhook_content"],
+                    max_username_length=max_username_length,
+                )
+                tasks.append(asyncio.create_task(worker.check_trade_loop()))
 
     if tasks:
         if config["check_for_update"]:
