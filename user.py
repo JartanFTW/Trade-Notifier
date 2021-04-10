@@ -42,7 +42,7 @@ class User:
         except InvalidCookie as e:
             await self.client.aclose()
             raise (e)
-        await self.update_id()
+        await self.update_user_info()
         logger.info("Created user object")
         return self
 
@@ -73,19 +73,21 @@ class User:
                         request.status_code, request.url, response_text=request.text
                     )
 
-    async def update_id(self):
+    async def update_user_info(self):
         """Updates self.id to integer id of roblox account tied to the security_cookie passed in on class creation.
         Returns None
         """
         while True:
-            logger.debug("Updating user id")
+            logger.debug("Updating user info")
             request = await self.client.get(
                 "https://users.roblox.com/v1/users/authenticated"
             )
             if request.status_code == 200:
                 request_json = request.json()
                 self.id = int(request_json["id"])
-                logger.info("Updated user id")
+                self.name = request_json["name"]
+                self.display_name = request_json["displayName"]
+                logger.info("Updated user info")
                 return
             elif request.status_code == 429:
                 await asyncio.sleep(5)
