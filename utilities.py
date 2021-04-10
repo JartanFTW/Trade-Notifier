@@ -39,11 +39,18 @@ class UnknownResponse(Exception):
 
 
 class InvalidCookie(Exception):
-    def __init__(self, response_code: int, request_url: str, response_text: str = None):
+    def __init__(
+        self,
+        response_code: int,
+        request_url: str,
+        response_text: str = None,
+        cookie: str = None,
+    ):
         self.response_code = response_code
         self.request_url = request_url
         self.response_text = response_text
-        self.err = f"An invalid cookie was detected with response code {response_code} when calling {request_url}"
+        self.cookie = cookie
+        self.err = f"An invalid cookie was detected with response code {response_code} when calling {request_url}\nCookie: {cookie}"
         logger.error(self.err)
         super().__init__(self.err)
 
@@ -177,14 +184,18 @@ def load_config(path: str):
     parser.read(path)
     config = {}
 
-    config["cookie"] = (
+    config["cookies"] = [
         "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_"
-        + str(parser["GENERAL"]["cookie"]).split("_")[-1]
-    )
+        + str(cookie.strip()).split("_")[-1]
+        for cookie in parser["GENERAL"]["cookie"].split(",")
+    ]
     config["add_unvalued_to_value"] = (
         True
         if str(parser["GENERAL"]["add_unvalued_to_value"]).upper() == "TRUE"
         else False
+    )
+    config["double_check"] = (
+        True if str(parser["GENERAL"]["double_check"]).upper() == "TRUE" else False
     )
 
     config["completed"] = {}
@@ -217,9 +228,6 @@ def load_config(path: str):
     config["logging_level"] = int(parser["DEBUG"]["logging_level"])
     config["testing"] = (
         True if str(parser["DEBUG"]["testing"]).upper() == "TRUE" else False
-    )
-    config["double_check"] = (
-        True if str(parser["DEBUG"]["double_check"]).upper() == "TRUE" else False
     )
     config["check_for_update"] = (
         True if str(parser["DEBUG"]["check_for_update"]).upper() == "TRUE" else False
