@@ -54,6 +54,7 @@ class TradeWorker:
         testing: bool = False,
         double_check: bool = False,
         webhook_content: str = "",
+        max_username_length: int = 20,
     ):
         self = TradeWorker()
         self.main_folder_path = main_folder_path
@@ -65,6 +66,7 @@ class TradeWorker:
         self.add_unvalued_to_value = add_unvalued_to_value
         self.double_check = double_check
         self.webhook_content = webhook_content
+        self.max_username_length = max_username_length
 
         self.old_trades = []
         self.roli_data = None
@@ -77,21 +79,25 @@ class TradeWorker:
             self.old_trades.append(trade["id"])
 
         if testing:
-            print_timestamp(f"{self.trade_type} testing mode enabled")
+            print_timestamp(
+                f"{self.user.display_name:>{self.max_username_length}} | {self.trade_type} testing mode enabled"
+            )
             try:
                 asyncio.create_task(self.send_trade(old_trade_info["data"][0]))
             except IndexError:
                 logger.warning(
-                    f"No {self.trade_type} trades in history to send test webhook based on"
+                    f"{self.user.display_name:>{self.max_username_length}} | No {self.trade_type} trades in history to send test webhook based on"
                 )
                 print_timestamp(
-                    f"No {self.trade_type} trades to send a test webhook based on, skipping"
+                    f"{self.user.display_name:>{self.max_username_length}} | No {self.trade_type} trades in history to send test webhook based on"
                 )
         return self
 
     async def send_trade(self, trade):
         if self.double_check:
-            print_timestamp(f"Double-checking {self.trade_type} trade: {trade['id']}")
+            print_timestamp(
+                f"{self.user.display_name:>{self.max_username_length}} | Double-checking {self.trade_type} trade: {trade['id']}"
+            )
             await asyncio.sleep(10)
             while True:
                 try:
@@ -101,15 +107,15 @@ class TradeWorker:
                     break
                 except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
                     logger.warning(
-                        f"Timed out while trying to grab {self.trade_type} trade status info: {traceback.format_exc()}"
+                        f"{self.user.display_name:>{self.max_username_length}} | Timed out while trying to grab {self.trade_type} trade status info: {traceback.format_exc()}"
                     )
                     print_timestamp(
-                        f"Timed out while trying to grab {self.trade_type} trade status info"
+                        f"{self.user.display_name:>{self.max_username_length}} | Timed out while trying to grab {self.trade_type} trade status info"
                     )
                     await asyncio.sleep(5)
             if trade["id"] not in [trade["id"] for trade in trades_info["data"][::-1]]:
                 print_timestamp(
-                    f"{self.trade_type} trade {trade['id']} detected as fake, skipping notification"
+                    f"{self.user.display_name:>{self.max_username_length}} | {self.trade_type} trade {trade['id']} detected as fake, skipping notification"
                 )
                 return
 
@@ -117,12 +123,14 @@ class TradeWorker:
             self.roli_data = await get_roli_data()
         except httpx.ReadTimeout:
             logger.error(
-                f"Timed out while trying to grab roli data: {traceback.format_exc()}"
+                f"{self.user.display_name:>{self.max_username_length}} | Timed out while trying to grab roli data: {traceback.format_exc()}"
             )
-            print_timestamp("Timed out while trying to grab roli data")
+            print_timestamp(
+                f"{self.user.display_name:>{self.max_username_length}} | Timed out while trying to grab roli data"
+            )
         except Exception:
             logger.error(
-                f"Unknown error while grabbing rolimons data: {traceback.format_exc()}"
+                f"{self.user.display_name:>{self.max_username_length}} | Unknown error while grabbing rolimons data: {traceback.format_exc()}"
             )
 
         trade_info = await self.user.get_trade_info(trade["id"])
@@ -166,22 +174,28 @@ class TradeWorker:
                 content=content,
                 file=File(image_bytes, filename="trade.png"),
             )
-        logger.info(f"Sent {self.trade_type} trade webhook: {trade['id']}")
-        print_timestamp(f"Sent {self.trade_type} trade webhook: {trade['id']}")
+        logger.info(
+            f"{self.user.display_name:>{self.max_username_length}} | Sent {self.trade_type} trade webhook: {trade['id']}"
+        )
+        print_timestamp(
+            f"{self.user.display_name:>{self.max_username_length}} | Sent {self.trade_type} trade webhook: {trade['id']}"
+        )
 
     async def check_trade_loop(self):
         while True:
-            print_timestamp(f"Checking {self.trade_type} trades")
+            print_timestamp(
+                f"{self.user.display_name:>{self.max_username_length}} | Checking {self.trade_type} trades"
+            )
             try:
                 trades_info = await self.user.get_trade_status_info(
                     tradeStatusType=self.trade_type
                 )
             except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ConnectError):
                 logger.warning(
-                    f"Timed out while trying to grab {self.trade_type} trade status info: {traceback.format_exc()}"
+                    f"{self.user.display_name:>{self.max_username_length}} | Timed out while trying to grab {self.trade_type} trade status info: {traceback.format_exc()}"
                 )
                 print_timestamp(
-                    f"Timed out while trying to grab {self.trade_type} trade status info"
+                    f"{self.user.display_name:>{self.max_username_length}} | Timed out while trying to grab {self.trade_type} trade status info"
                 )
                 await asyncio.sleep(self.update_interval)
                 continue
@@ -189,7 +203,7 @@ class TradeWorker:
             for trade in trades_info["data"][::-1]:
                 if trade["id"] not in self.old_trades:
                     print_timestamp(
-                        f"Detected new {self.trade_type} trade: {trade['id']}"
+                        f"{self.user.display_name:>{self.max_username_length}} | Detected new {self.trade_type} trade: {trade['id']}"
                     )
                     self.old_trades.append(trade["id"])
                     if len(self.old_trades) > 25:
