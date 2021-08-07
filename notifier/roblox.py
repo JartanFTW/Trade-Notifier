@@ -16,6 +16,7 @@
 # Standard Library
 import asyncio
 import logging
+from typing import Literal
 
 # Third Party
 import httpx
@@ -79,3 +80,27 @@ class User:
             self.id = resp_json["id"]
             self.name = resp_json["name"]
             self.display_name = resp_json["displayName"]
+
+    async def get_trades(
+        self,
+        status_type: Literal["Inbound", "Outbound", "Completed"] = "Inbound",
+        limit: Literal[10, 25, 50, 100] = 10,
+        sort_order: Literal["Asc", "Desc"] = "Asc",
+    ) -> dict:
+        """Fetches a list of authenticated user's trades
+        https://trades.roblox.com/docs#!/Trades/get_v1_trades_tradeStatusType
+        """
+        log.debug(f"Grabbing user trades {status_type}")
+        while True:
+            resp = await self.__request(
+                "get",
+                f"https://trades.roblox.com/v1/trades/{status_type}?limit={limit}&sortOrder={sort_order}",
+            )
+            if resp.status_code == 429:
+                await asyncio.sleep(1)
+                continue
+            break
+        if resp.status_code == 200:
+            log.debug(f"Grabbed user trade {status_type}")
+            return resp.json()
+        raise UnknownResponse(resp.status_code, resp.url, resp.text)
