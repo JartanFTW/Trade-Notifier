@@ -15,6 +15,7 @@
 
 # Standard Library
 import asyncio
+from datetime import datetime
 import logging
 from typing import Literal
 
@@ -90,7 +91,7 @@ class User:
         """Fetches a list of authenticated user's trades
         https://trades.roblox.com/docs#!/Trades/get_v1_trades_tradeStatusType
         """
-        log.debug(f"Grabbing user trades {status_type}")
+        log.debug(f"Fetching user trades {status_type}")
         while True:
             resp = await self.__request(
                 "get",
@@ -104,3 +105,56 @@ class User:
             log.debug(f"Grabbed user trade {status_type}")
             return resp.json()
         raise UnknownResponse(resp.status_code, resp.url, resp.text)
+
+    async def get_trade(self, trade_id: int) -> dict:
+        """Gets detailed information about a trade
+        https://trades.roblox.com/docs#!/Trades/get_v1_trades_tradeId
+        """
+        log.debug(f"Fetching trade information {trade_id}")
+        while True:
+            resp = await self.__request(
+                "get", f"https://trades.roblox.com/v1/trades/{trade_id}"
+            )
+            if resp.status_code == 429:
+                await asyncio.sleep(1)
+                continue
+            break
+        if resp.status_code == 200:
+            request_json = resp.json()
+            log.debug(f"Fetched user trade info {trade_id}")
+            return resp.json()
+        raise UnknownResponse(resp.status_code, resp.url, resp.text)
+
+
+class Item:
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        recent_average_price: int,
+        serial_number: int = None,
+        asset_id: int = None,
+        rolimons_value: int = None,
+        **kwargs,
+    ):
+        self.__dict__ |= kwargs
+        self.id = id
+        self.name = name
+        self.recent_average_price = recent_average_price
+        self.serial_number = serial_number
+        self.asset_id = asset_id
+        self.rolimons_value = rolimons_value
+
+
+class Trade:
+    def __init__(
+        self,
+        data: dict,
+        sender: User,
+        offer_items: list[Item],
+        receive_items: list[Item],
+    ):
+        self.data = data
+        self.trade_id = data["id"]
+        self.created = datetime.strptime(data["created"], "%Y-%m-%dT%H:%M:%S%zZ")
+        self.status = data["status"]
