@@ -53,3 +53,21 @@ def load_config(path: str) -> dict:
 
     config = wrap_to_dict(parser)
     return config
+
+
+def setup_logging(path: str, level: int = 40) -> None:
+    """Sets up logging using basicConfig at level provided inside a logs folder created at the path string provided
+    path must be a string and compatible with os module, and accessible
+    level must be an integer representing what level to log. https://docs.python.org/3/howto/logging.html#logging-levels
+    """
+    logs_folder_path = os.path.join(path, "logs")
+    if not os.path.exists(logs_folder_path):
+        os.makedirs(logs_folder_path)
+    log_path = os.path.join(
+        logs_folder_path, time.strftime("%Y-%m-%d", time.localtime())
+    )
+    logging.basicConfig(
+        filename=f"{log_path}.log",
+        level=level,
+        format="%(asctime)s:%(levelname)s:%(message)s",
+    )
