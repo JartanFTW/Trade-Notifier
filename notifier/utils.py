@@ -50,3 +50,6 @@ def load_config(path: str) -> dict:
                 except ValueError:
                     pass
         return wrapped
+
+    config = wrap_to_dict(parser)
+    return config
