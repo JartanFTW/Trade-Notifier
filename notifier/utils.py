@@ -16,5 +16,15 @@
 # Standard Library
 import asyncio
 import logging
+import time
 
 log = logging.getLogger(__name__)
+
+
+def format_print(text: str, log_level: int = None):
+    """Prints to console the provided string with a H:M:S | timestamp before it
+    If log_level is provided it will also log the text without formatting, at the provided level."""
+    formatted_text = time.strftime("%H:%M:%S | ", time.localtime()) + text
+    print(formatted_text)
+    if isinstance(log_level, int):
+        log.log(log_level, text)
