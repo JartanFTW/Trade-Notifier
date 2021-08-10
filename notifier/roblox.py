@@ -46,7 +46,7 @@ class User:
 
         await self.__authenticate()
 
-        log.info(f"Created roblox user object: {self.id}")
+        log.debug(f"Created roblox user object: {self.id}")
         return self
 
     async def __request(self, method: str, url: str, **kwargs):
@@ -120,7 +120,6 @@ class User:
                 continue
             break
         if resp.status_code == 200:
-            request_json = resp.json()
             log.debug(f"Fetched user trade info {trade_id}")
             return resp.json()
         raise UnknownResponse(resp.status_code, resp.url, resp.text)
@@ -158,3 +157,7 @@ class Trade:
         self.trade_id = data["id"]
         self.created = datetime.strptime(data["created"], "%Y-%m-%dT%H:%M:%S%zZ")
         self.status = data["status"]
+
+        self.sender = sender
+        self.offer_items = tuple(offer_items)
+        self.receive_items = tuple(receive_items)
