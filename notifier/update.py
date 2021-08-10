@@ -137,6 +137,20 @@ class HttpxWebhookAdapter(
             raise DiscordServerError(r, response)
         raise webhook.HTTPException(r, response)
 
+    async def handle_execution_response(self, response, *, wait):
+        data = await response
+        if not wait:
+            return data
+
+        # transform into Message object
+        # Make sure to coerce the state to the partial one to allow message edits/delete
+        state = webhook._PartialWebhookState(
+            self, self.webhook, parent=self.webhook._state
+        )
+        return webhook.WebhookMessage(
+            data=data, state=state, channel=self.webhook.channel
+        )
+
 
 async def check_for_update(current_version: str) -> tuple[bool, str]:
     """Checks if provided current_version variable matches that of tag_name on the latest release GitHub API
